@@ -142,4 +142,7 @@ public class Player {
     public PocketMon getFirstPokemon() {
         return team.isEmpty() ? null : team.get(0);
     }
+    public void addMoney(int amount) {
+        this.money += amount;
+    }
 }

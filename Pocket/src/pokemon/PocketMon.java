@@ -3,6 +3,7 @@ package pokemon;
 import java.util.*;
 
 public class PocketMon {
+    // 经验值升级表
     private static final int[] EXP_REQUIREMENTS = {
             0, 50, 100, 200, 350, 500, 700, 900, 1150, 1400,
             1700, 2000, 2350, 2700, 3100, 3500, 4000, 4500, 5000, 5500, 6000
@@ -26,43 +27,73 @@ public class PocketMon {
         this.name = name;
         this.type = type;
         this.level = level;
-        this.skills = new Vector<>();
+        this.skills = new ArrayList<>();
+
         calculateStats();
         this.currentHp = this.maxHp;
-        this.exp = level > 1 ? EXP_REQUIREMENTS[level - 1] : 0;
+
+        // 初始经验
+        this.exp = level > 1 && level <= EXP_REQUIREMENTS.length ? EXP_REQUIREMENTS[level - 1] : 0;
+
         initializeSkills();
     }
 
     private void calculateStats() {
-        this.maxHp = 30 + (level * 3);
-        this.attack = 10 + level;
-        this.defense = 10 + level;
+        this.maxHp = 30 + (level * 5);
+        this.attack = 10 + (level * 2);
+        this.defense = 10 + (level * 2);
     }
 
     private void initializeSkills() {
+        skills.add(new Skill("撞击", Type.NORMAL, 35, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+
         switch (this.type) {
             case GRASS:
-                skills.add(new Skill("撞击", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
                 skills.add(new Skill("藤鞭", Type.GRASS, 45, 100, 25, Skill.SkillCategory.PHYSICAL, 3));
                 break;
+            case FIRE:
+                skills.add(new Skill("火花", Type.FIRE, 40, 100, 25, Skill.SkillCategory.SPECIAL, 3));
+                break;
+            case WATER:
+                skills.add(new Skill("水枪", Type.WATER, 40, 100, 25, Skill.SkillCategory.SPECIAL, 3));
+                break;
+            case ELECTRIC:
+                skills.add(new Skill("电击", Type.ELECTRIC, 40, 100, 25, Skill.SkillCategory.SPECIAL, 3));
+                break;
             case BUG:
-                skills.add(new Skill("撞击", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
                 skills.add(new Skill("吐丝", Type.BUG, 0, 95, 40, Skill.SkillCategory.STATUS, 1));
                 break;
             case FLYING:
-                skills.add(new Skill("撞击", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
                 skills.add(new Skill("起风", Type.FLYING, 40, 100, 35, Skill.SkillCategory.SPECIAL, 1));
                 break;
             default:
-                skills.add(new Skill("撞击", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
                 break;
         }
     }
 
+    // === 战斗相关 ===
+    public void takeDamage(int damage) {
+        this.currentHp -= damage;
+        if (this.currentHp < 0) this.currentHp = 0;
+    }
+
+    public void heal(int amount) {
+        this.currentHp += amount;
+        if (this.currentHp > this.maxHp) this.currentHp = this.maxHp;
+    }
+
+    public void fullHeal() {
+        this.currentHp = this.maxHp;
+    }
+
+    public boolean isFainted() {
+        return this.currentHp <= 0;
+    }
+
+    // === 经验与升级 ===
     public void gainExp(int gainedExp) {
         if (level >= EXP_REQUIREMENTS.length) return;
         this.exp += gainedExp;
-        System.out.println(name + " 获得了 " + gainedExp + " 点经验值！");
         while (level < EXP_REQUIREMENTS.length && exp >= EXP_REQUIREMENTS[level]) {
             levelUp();
         }
@@ -75,53 +106,45 @@ public class PocketMon {
         double hpRatio = (double) currentHp / oldMaxHp;
         currentHp = (int) (maxHp * hpRatio);
         if (currentHp < 1) currentHp = 1;
-        System.out.println("✨ " + name + " 升级到了 Lv." + level + "！");
     }
 
+    // ============================================
+    // 👇👇👇 重点：你要的 getExpToNextLevel 来了！ 👇👇👇
+    // ============================================
     public int getExpToNextLevel() {
-        if (level >= EXP_REQUIREMENTS.length) return -1;
+        // 如果已经满级，返回 0
+        if (level >= EXP_REQUIREMENTS.length) return 0;
+        // 否则返回：下一级所需总经验 - 当前经验
         return EXP_REQUIREMENTS[level] - exp;
     }
 
     public String getExpInfo() {
-        int expToNext = getExpToNextLevel();
-        if (expToNext == -1) return "已达到最高级";
-        else if (expToNext == 0) return "即将升级";
-        else return "距离下一级: " + expToNext + "经验";
-    }
-
-    public void takeDamage(int damage) {
-        currentHp -= damage;
-        if (currentHp < 0) currentHp = 0;
-    }
-
-    public void heal(int amount) {
-        currentHp = Math.min(currentHp + amount, maxHp);
-        System.out.println(name + " 恢复了 " + amount + " HP！");
-    }
-
-    public void fullHeal() {
-        currentHp = maxHp;
-    }
-
-    public boolean isFainted() {
-        return currentHp <= 0;
+        int need = getExpToNextLevel();
+        if (need == 0) return "已达到最高级";
+        return "距离下一级: " + need + "经验";
     }
 
     public Skill getSkill(int index) {
-        return (index >= 0 && index < skills.size()) ? skills.get(index) : null;
+        if (index >= 0 && index < skills.size()) {
+            return skills.get(index);
+        }
+        return null;
     }
 
-    public String getBattleStatus() {
-        return String.format("%s Lv.%d HP%d/%d", name, level, currentHp, maxHp);
-    }
-
+    // ============================================
+    // Getters
+    // ============================================
+    public int getHp() { return currentHp; }
+    public int getCurrentHp() { return currentHp; }
+    public int getMaxHp() { return maxHp; }
     public String getName() { return name; }
     public Type getType() { return type; }
     public int getLevel() { return level; }
-    public int getCurrentHp() { return currentHp; }
-    public int getMaxHp() { return maxHp; }
     public int getAttack() { return attack; }
     public int getDefense() { return defense; }
     public List<Skill> getSkills() { return skills; }
+
+    public String getBattleStatus() {
+        return String.format("%s Lv.%d (HP: %d/%d)", name, level, currentHp, maxHp);
+    }
 }

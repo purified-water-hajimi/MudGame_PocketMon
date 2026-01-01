@@ -23,35 +23,26 @@ public class PvPBattle {
         promptTurn();
     }
 
-    // 处理玩家输入的战斗指令
     public void handleInput(ClientHandler sender, String input) {
-        // 1. 检查是不是轮到这个人
         if (sender != currentTurn) {
             sender.sendMessage("🚫 还没轮到你！请等待对手行动...");
             return;
         }
 
-        // 2. 检查是不是认输
-        if (input.equals("run") || input.equals("逃跑")) {
+        if (input.equalsIgnoreCase("run") || input.equals("逃跑")) {
             broadcast("🏳️ " + sender.getPlayer().getName() + " 认输逃跑了！");
-            endBattle(sender == p1 ? p2 : p1); // 对手获胜
+            endBattle(sender == p1 ? p2 : p1);
             return;
         }
 
-        // 3. 尝试解析技能选择 (输入 1, 2, 3...)
         try {
-            int skillIndex = Integer.parseInt(input) - 1; // 玩家输入1代表下标0
+            int skillIndex = Integer.parseInt(input) - 1;
             PocketMon myPoke = sender.getPlayer().getFirstPokemon();
-
-            // 获取技能列表
             List<Skill> skills = myPoke.getSkills();
 
-            // 检查输入是否有效
             if (skillIndex >= 0 && skillIndex < skills.size()) {
                 Skill chosenSkill = skills.get(skillIndex);
                 ClientHandler target = (sender == p1) ? p2 : p1;
-
-                // 🔥 执行技能攻击！
                 performAttack(sender, target, chosenSkill);
             } else {
                 sender.sendMessage("技能编号错误！请输入 1~" + skills.size());
@@ -61,7 +52,6 @@ public class PvPBattle {
         }
     }
 
-    // 执行攻击 (带技能参数)
     private void performAttack(ClientHandler attacker, ClientHandler defender, Skill skill) {
         PocketMon myPoke = attacker.getPlayer().getFirstPokemon();
         PocketMon enemyPoke = defender.getPlayer().getFirstPokemon();
@@ -71,31 +61,39 @@ public class PvPBattle {
             return;
         }
 
-        // === 🧮 伤害计算公式 ===
-        // 伤害 = (技能威力 + 攻击力) - 对手防御力
-        // (为了防止不破防，最低造成 1 点伤害)
-        int damage = (skill.getPower() + myPoke.getAttack()) - enemyPoke.getDefense();
-        if (damage < 1) damage = 1;
+        // 1. 获取属性克制倍率
+        double multiplier = getTypeMultiplier(skill.getType(), enemyPoke.getType());
 
-        // 属性克制逻辑可以在这里扩展 (暂时略过)
+        // 2. 基础伤害公式: (技能威力 + 攻击力) - 对手防御
+        int baseDamage = (skill.getPower() + myPoke.getAttack()) - enemyPoke.getDefense();
+        if (baseDamage < 1) baseDamage = 1; // 保底伤害
 
-        // 扣血
-        enemyPoke.takeDamage(damage);
+        // 3. 计算最终伤害
+        int finalDamage = (int) (baseDamage * multiplier);
 
-        // 广播战斗信息
+        // 4. 扣血
+        enemyPoke.takeDamage(finalDamage);
+
+        // 5. 构建战斗信息
+        String effectMsg = "";
+        if (multiplier > 1.0) effectMsg = " (效果拔群!)";
+        else if (multiplier < 1.0 && multiplier > 0) effectMsg = " (效果微弱...)";
+
         broadcast("\n⚡ " + attacker.getPlayer().getName() + " 的 " + myPoke.getName() +
                 " 使用了 [" + skill.getName() + "] !");
-        broadcast("💥 对 " + enemyPoke.getName() + " 造成了 " + damage + " 点伤害！");
 
-        // 检查是否击败对手
+        if (!effectMsg.isEmpty()) broadcast(effectMsg); // 发送克制提示
+
+        broadcast("💥 对 " + enemyPoke.getName() + " 造成了 " + finalDamage + " 点伤害！");
+
+        // 6. 结算或下一回合
         if (enemyPoke.isFainted()) {
             broadcast("\n🏆 " + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
             endBattle(attacker);
         } else {
-            // 交换回合
-            currentTurn = defender;
+            currentTurn = defender; // 交换回合
 
-            // 显示血量条
+            // 显示血条
             broadcast("--------------------------------");
             broadcast(myPoke.getName() + ": " + myPoke.getHp() + "/" + myPoke.getMaxHp() + " HP");
             broadcast(enemyPoke.getName() + ": " + enemyPoke.getHp() + "/" + enemyPoke.getMaxHp() + " HP");
@@ -105,22 +103,55 @@ public class PvPBattle {
         }
     }
 
+    // === 🔥 核心：属性克制表 ===
+    // 返回值: 2.0=克制, 0.5=被克, 1.0=正常
+    private double getTypeMultiplier(PocketMon.Type skillType, PocketMon.Type defType) {
+        switch (skillType) {
+            case FIRE: // 火系
+                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.BUG) return 2.0;
+                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.FIRE) return 0.5;
+                break;
+            case WATER: // 水系
+                if (defType == PocketMon.Type.FIRE) return 2.0;
+                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.GRASS) return 0.5;
+                break;
+            case GRASS: // 草系
+                if (defType == PocketMon.Type.WATER) return 2.0;
+                if (defType == PocketMon.Type.FIRE || defType == PocketMon.Type.GRASS ||
+                        defType == PocketMon.Type.FLYING || defType == PocketMon.Type.BUG) return 0.5;
+                break;
+            case ELECTRIC: // 电系
+                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.FLYING) return 2.0;
+                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.ELECTRIC) return 0.5;
+                break;
+            case FLYING: // 飞行系
+                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.BUG) return 2.0;
+                if (defType == PocketMon.Type.ELECTRIC) return 0.5;
+                break;
+            case BUG: // 虫系
+                if (defType == PocketMon.Type.GRASS) return 2.0;
+                if (defType == PocketMon.Type.FIRE || defType == PocketMon.Type.FLYING) return 0.5;
+                break;
+            default: // 普通系等
+                break;
+        }
+        return 1.0; // 默认 1 倍
+    }
+
     private void promptTurn() {
-        // 告诉当前回合的玩家：该你了，选个技能吧！
         ClientHandler activePlayer = currentTurn;
         ClientHandler waitingPlayer = (currentTurn == p1) ? p2 : p1;
 
         waitingPlayer.sendMessage("⏳ 等待 " + activePlayer.getPlayer().getName() + " 行动...");
 
         activePlayer.sendMessage("\n👉 轮到你了！请选择技能 (输入数字):");
-        PocketMon myPoke = activePlayer.getPlayer().getFirstPokemon();
-        List<Skill> skills = myPoke.getSkills();
+        List<Skill> skills = activePlayer.getPlayer().getFirstPokemon().getSkills();
 
-        // 列出所有技能
         for (int i = 0; i < skills.size(); i++) {
             Skill s = skills.get(i);
+            // 这里显示技能属性，方便玩家判断克制
             activePlayer.sendMessage((i + 1) + ". " + s.getName() +
-                    " (威力:" + s.getPower() + " 属性:" + s.getType() + ")");
+                    " [威力:" + s.getPower() + " | " + s.getType() + "]");
         }
         activePlayer.sendMessage("输入 'run' 认输");
     }
@@ -128,13 +159,15 @@ public class PvPBattle {
     private void endBattle(ClientHandler winner) {
         if (winner != null) {
             broadcast("\n🎉 胜者是: " + winner.getPlayer().getName() + "！");
-            winner.getPlayer().addMoney(200); // 赢了加钱
+            winner.getPlayer().addMoney(200);
             winner.sendMessage("你获得了 200元 奖金！");
+
+            ClientHandler loser = (winner == p1) ? p2 : p1;
+            loser.getPlayer().deductMoney(200);
+            loser.sendMessage("遗憾！你输了，扣除200元作为惩罚");
         } else {
             broadcast("\n🤝 战斗异常结束。");
         }
-
-        // 解除双方的战斗状态
         p1.endPvP();
         p2.endPvP();
     }
@@ -150,4 +183,5 @@ public class PvPBattle {
         p1.sendMessage(msg);
         p2.sendMessage(msg);
     }
+
 }

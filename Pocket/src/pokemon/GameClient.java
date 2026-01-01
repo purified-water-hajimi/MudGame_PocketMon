@@ -5,7 +5,7 @@ import java.net.*;
 import java.util.Scanner;
 
 public class GameClient {
-    private static final String SERVER_IP = "192.168.3.35";
+    private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 6666;         // 端口要和服务器一致
 
     public static void main(String[] args) {

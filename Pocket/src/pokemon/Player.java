@@ -145,4 +145,10 @@ public class Player {
     public void addMoney(int amount) {
         this.money += amount;
     }
+    public void deductMoney(int amount) {
+        this.money -= amount;
+        if (this.money < 0) {
+            this.money = 0; // 防止金额变成负数
+        }
+    }
 }

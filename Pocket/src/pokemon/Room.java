@@ -3,14 +3,14 @@ package pokemon;
 import java.util.*;
 
 public class Room {
-    private String id;           // ·¿¼äÎ¨Ò»ID (Èç "home")
-    private String name;         // ·¿¼äÏÔÊ¾Ãû (Èç "ÕæĞÂÕò")
-    private String description;  // ÃèÊö
-    private Map<String, String> exits; // ³ö¿Ú·½Ïò -> ·¿¼äID
-    
-    // ´æ·ÅÍæ¼ÒÁĞ±í (Áª»úÓÃ)
+    private String id;           // æˆ¿é—´å”¯ä¸€ID (å¦‚ "home")
+    private String name;         // æˆ¿é—´æ˜¾ç¤ºå (å¦‚ "çœŸæ–°é•‡")
+    private String description;  // æè¿°
+    private Map<String, String> exits; // å‡ºå£æ–¹å‘ -> æˆ¿é—´ID
+
+    // ç©å®¶åˆ—è¡¨ (è”æœºç”¨)
     private Vector<Player> playersInRoom = new Vector<>();
-    // ´æ·ÅÒ°Éú±¦¿ÉÃÎ (Õ½¶·ÓÃ)
+    // é‡ç”Ÿå®å¯æ¢¦åˆ—è¡¨ (æˆ˜æ–—ç”¨)
     private List<PocketMon> wildPokemons = new ArrayList<>();
 
     public Room(String id, String name, String description) {
@@ -20,7 +20,6 @@ public class Room {
         this.exits = new HashMap<>();
     }
 
-    // === ÕâÀïµÄ getId ¾ÍÊÇÄã±¨´íÈ±ÉÙµÄÄÇ¸ö£¡ ===
     public String getId() {
         return id;
     }
@@ -40,20 +39,20 @@ public class Room {
     public String getExit(String direction) {
         return exits.get(direction);
     }
-    
+
     public String getDescription() {
         return description;
     }
 
     public String getFullDescription() {
-        return "Î»ÖÃ: " + name + "\n" + description;
+        return "ä½ç½®: " + name + "\n" + description;
     }
 
     public String getAvailableExits() {
         return exits.keySet().toString();
     }
 
-    // === Áª»ú¹¦ÄÜ: Íæ¼Ò½ø³ö ===
+    // === è”æœºåŠŸèƒ½: ç©å®¶è¿›å‡º ===
     public void addPlayer(Player p) {
         playersInRoom.add(p);
     }
@@ -69,18 +68,17 @@ public class Room {
                 sb.append(p.getName()).append(" ");
             }
         }
-        return sb.length() == 0 ? "Éí±ßÃ»ÓĞÈË¡£" : "Éí±ßµÄÍæ¼Ò: " + sb.toString();
+        return sb.length() == 0 ? "èº«è¾¹æ²¡æœ‰äººã€‚" : "èº«è¾¹çš„ç©å®¶: " + sb.toString();
     }
 
-    // === Õ½¶·¹¦ÄÜ: Ò°Éú±¦¿ÉÃÎ ===
+    // === æˆ˜æ–—åŠŸèƒ½: é‡ç”Ÿå®å¯æ¢¦ ===
     public void addWildPokemon(PocketMon pm, double chance) {
-        // ¼ò»¯°æ£ºÖ±½Ó´æ½øÈ¥£¬¼¸ÂÊÂß¼­ÔÚ ClientHandler ´¦Àí
         wildPokemons.add(pm);
     }
 
     public PocketMon getRandomWildPokemon() {
         if (wildPokemons.isEmpty()) return null;
-        // Ëæ»ú·µ»ØÒ»Ö»
+        // éšæœºè¿”å›ä¸€åª
         return wildPokemons.get(new Random().nextInt(wildPokemons.size()));
     }
 }

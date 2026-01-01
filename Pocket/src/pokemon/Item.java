@@ -8,11 +8,11 @@ public class Item {
     private String description;
 
     public enum ItemType {
-        HEAL("»Ö¸´"),
-        DAMAGE("ÉËº¦"),
-        EXP_BOOST("¾­ÑéÌáÉı"),
-        BALL("¾«ÁéÇò"),
-        OTHER("ÆäËû");
+        HEAL("æ¢å¤"),
+        DAMAGE("ä¼¤å®³"),
+        EXP_BOOST("ç»éªŒæå‡"),
+        BALL("ç²¾çµçƒ"),
+        OTHER("å…¶ä»–");
 
         private final String chineseName;
 
@@ -41,7 +41,7 @@ public class Item {
 
     @Override
     public String toString() {
-        return String.format("%s (%s) - Ğ§¹û:%d ¼Û¸ñ:%dÔª\n  %s",
+        return String.format("%s (%s) - æ•ˆæœ:%d ä»·æ ¼:%då…ƒ\n  %s",
                 name, type.getChineseName(), value, price, description);
     }
 }

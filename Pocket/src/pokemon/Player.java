@@ -10,7 +10,7 @@ public class Player {
 
     public Player(String name) {
         this.name = name;
-        // Ê¹ÓÃ Vector È·±£Ïß³Ì°²È«
+        // ä½¿ç”¨ Vector ç¡®ä¿çº¿ç¨‹å®‰å…¨
         this.team = new Vector<>();
         this.bag = new HashMap<>();
         this.money = 1000;
@@ -18,23 +18,22 @@ public class Player {
     }
 
     private void initializePlayer() {
-        bag.put("ÉËÒ©", 2);
-        bag.put("ºÃÉËÒ©", 1);
-        bag.put("¾«ÁéÇò", 5);
-        bag.put("¾­ÑéÌÇ¹û", 1);
-        bag.put("¹¥»÷Ç¿»¯¼Á", 1);
-        bag.put("·ÀÓùÇ¿»¯¼Á", 1);
+        bag.put("ä¼¤è¯", 2);
+        bag.put("å¥½ä¼¤è¯", 1);
+        bag.put("ç²¾çµçƒ", 5);
+        bag.put("ç»éªŒç³–æœ", 1);
+        bag.put("æ”»å‡»å¼ºåŒ–å‰‚", 1);
+        bag.put("é˜²å¾¡å¼ºåŒ–å‰‚", 1);
     }
 
-    // ? Ô­À´ÊÇ showStatus (Ö±½Ó´òÓ¡)
-    // ? ÏÖÔÚÊÇ getStatus (·µ»Ø×Ö·û´®¸ø ClientHandler ´òÓ¡)
+    // è·å–çŠ¶æ€ (è¿”å›å­—ç¬¦ä¸²ç»™ ClientHandler æ‰“å°)
     public String getStatus() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== ÑµÁ·¼Ò " + name + " ===\n");
-        sb.append("½ğÇ®: " + money + "Ôª\n");
-        sb.append("¶ÓÎé:\n");
+        sb.append("=== è®­ç»ƒå®¶ " + name + " ===\n");
+        sb.append("é‡‘é’±: " + money + "å…ƒ\n");
+        sb.append("é˜Ÿä¼:\n");
         if (team.isEmpty()) {
-            sb.append(" (ÔİÎŞ±¦¿ÉÃÎ)\n");
+            sb.append(" (æš‚æ— å®å¯æ¢¦)\n");
         } else {
             for (int i = 0; i < team.size(); i++) {
                 PocketMon pm = team.get(i);
@@ -45,61 +44,60 @@ public class Player {
         return sb.toString();
     }
 
-    // ? ¸ÄÎª·µ»Ø×Ö·û´®
+    // è·å–èƒŒåŒ…å†…å®¹
     public String getBagContent() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== ±³°ü ===\n");
+        sb.append("=== èƒŒåŒ… ===\n");
         if (bag.isEmpty()) {
-            sb.append("±³°üÊÇ¿ÕµÄ¡£\n");
+            sb.append("èƒŒåŒ…æ˜¯ç©ºçš„ã€‚\n");
         } else {
             int totalItems = 0;
             for (Map.Entry<String, Integer> entry : bag.entrySet()) {
                 sb.append(entry.getKey() + " x" + entry.getValue() + "\n");
                 totalItems += entry.getValue();
             }
-            sb.append("\n×Ü¼Æ: " + totalItems + "¸öµÀ¾ß\n");
+            sb.append("\næ€»è®¡: " + totalItems + "ä¸ªé“å…·\n");
         }
-        sb.append("½ğÇ®: " + money + "Ôª");
+        sb.append("é‡‘é’±: " + money + "å…ƒ");
         return sb.toString();
     }
 
-    // ? ¸ÄÎª·µ»Ø²Ù×÷½á¹û×Ö·û´®
+    // ä½¿ç”¨ç‰©å“
     public String useItem(String itemName) {
         if (!bag.containsKey(itemName) || bag.get(itemName) <= 0) {
-            return "ÄãÃ»ÓĞ" + itemName + "¡£";
+            return "ä½ æ²¡æœ‰" + itemName + "ã€‚";
         }
 
         if (team.isEmpty()) {
-            return "ÄãÃ»ÓĞ¿ÉÓÃµÄ±¦¿ÉÃÎ£¡";
+            return "ä½ æ²¡æœ‰å¯ç”¨çš„å®å¯æ¢¦ï¼";
         }
 
         PocketMon targetPokemon = team.get(0);
         String resultMsg = "";
 
         switch (itemName) {
-            case "ÉËÒ©":
+            case "ä¼¤è¯":
                 targetPokemon.heal(20);
                 bag.put(itemName, bag.get(itemName) - 1);
-                resultMsg = "Ê¹ÓÃÁËÉËÒ©£¡»Ö¸´ÁË20HP";
+                resultMsg = "ä½¿ç”¨äº†ä¼¤è¯ï¼æ¢å¤äº†20HP";
                 break;
-            case "ºÃÉËÒ©":
+            case "å¥½ä¼¤è¯":
                 targetPokemon.heal(50);
                 bag.put(itemName, bag.get(itemName) - 1);
-                resultMsg = "Ê¹ÓÃÁËºÃÉËÒ©£¡»Ö¸´ÁË50HP";
+                resultMsg = "ä½¿ç”¨äº†å¥½ä¼¤è¯ï¼æ¢å¤äº†50HP";
                 break;
-            case "¾­ÑéÌÇ¹û":
+            case "ç»éªŒç³–æœ":
                 targetPokemon.gainExp(100);
                 bag.put(itemName, bag.get(itemName) - 1);
-                resultMsg = "Ê¹ÓÃÁË¾­ÑéÌÇ¹û£¡»ñµÃÁË100¾­ÑéÖµ";
+                resultMsg = "ä½¿ç”¨äº†ç»éªŒç³–æœï¼è·å¾—äº†100ç»éªŒå€¼";
                 break;
-            case "¹¥»÷Ç¿»¯¼Á":
-                // ÕâÀïÂß¼­ÉÔÎ¢ÓĞµãÎÊÌâ£¬Ç¿»¯¼ÁÍ¨³£Õ½¶·ÖĞÓÃ£¬Æ½Ê±ÓÃÃ»Ğ§¹û
-                // µ«ÎªÁË²»±¨´í£¬ÏÈÕâÑùĞ´
-                resultMsg = "Ê¹ÓÃÁË¹¥»÷Ç¿»¯¼Á£¡(ĞèÒªÔÚÕ½¶·ÖĞÊ¹ÓÃ²ÅÓĞĞ§)";
+            case "æ”»å‡»å¼ºåŒ–å‰‚":
+                // æˆ˜æ–—å¤–ä½¿ç”¨æ²¡æœ‰å®é™…æ•ˆæœï¼Œæš‚ä½œæç¤º
+                resultMsg = "ä½¿ç”¨äº†æ”»å‡»å¼ºåŒ–å‰‚ï¼(éœ€è¦åœ¨æˆ˜æ–—ä¸­ä½¿ç”¨æ‰æœ‰æ•ˆ)";
                 bag.put(itemName, bag.get(itemName) - 1);
                 break;
             default:
-                return "ÎŞ·¨ÔÚ·ÇÕ½¶·×´Ì¬Ê¹ÓÃ " + itemName;
+                return "æ— æ³•åœ¨éæˆ˜æ–—çŠ¶æ€ä½¿ç”¨ " + itemName;
         }
 
         if (bag.get(itemName) <= 0) bag.remove(itemName);
@@ -108,29 +106,28 @@ public class Player {
 
     public String healTeam() {
         for (PocketMon pm : team) pm.fullHeal();
-        return "ËùÓĞ±¦¿ÉÃÎÒÑÍêÈ«»Ö¸´£¡";
+        return "æ‰€æœ‰å®å¯æ¢¦å·²å®Œå…¨æ¢å¤ï¼";
     }
 
-    // ? ¹ºÂòÒ²·µ»Ø×Ö·û´®¸æÖª³É¹¦Óë·ñ
+    // è´­ä¹°é“å…·
     public String buyItem(String itemName, int price) {
         if (money < price) {
-            return "½ğÇ®²»×ã£¡ĞèÒª" + price + "Ôª£¬µ«ÄãÖ»ÓĞ" + money + "Ôª¡£";
+            return "é‡‘é’±ä¸è¶³ï¼éœ€è¦" + price + "å…ƒï¼Œä½†ä½ åªæœ‰" + money + "å…ƒã€‚";
         }
         money -= price;
         bag.put(itemName, bag.getOrDefault(itemName, 0) + 1);
-        return "¹ºÂòÁË " + itemName + "£¡»¨·Ñ" + price + "Ôª\nÊ£Óà½ğÇ®: " + money + "Ôª";
+        return "è´­ä¹°äº† " + itemName + "ï¼èŠ±è´¹" + price + "å…ƒ\nå‰©ä½™é‡‘é’±: " + money + "å…ƒ";
     }
 
-    // ? ´ò¹¤Ò²·µ»Ø½á¹û
+    // æ‰“å·¥
     public String work() {
         int earnings = 200 + (int)(Math.random() * 100);
         money += earnings;
-        return "´ò¹¤Íê³É£¡×¬È¡ÁË" + earnings + "Ôª\nµ±Ç°½ğÇ®: " + money + "Ôª";
+        return "æ‰“å·¥å®Œæˆï¼èµšå–äº†" + earnings + "å…ƒ\nå½“å‰é‡‘é’±: " + money + "å…ƒ";
     }
 
     public void gainMoney(int amount) {
         money += amount;
-        // Õâ¸öÍ¨³£ÊÇÄÚ²¿µ÷ÓÃ£¬²»ĞèÒª·µ»Ø×Ö·û´®£¬»òÕß battle ÏµÍ³»á´¦Àí´òÓ¡
     }
 
     public String getName() { return name; }

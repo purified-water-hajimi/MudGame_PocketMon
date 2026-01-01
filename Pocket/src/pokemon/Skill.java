@@ -10,9 +10,9 @@ public class Skill {
     private SkillCategory category;
 
     public enum SkillCategory {
-        PHYSICAL("物理"),
-        SPECIAL("特殊"),
-        STATUS("变化");
+        PHYSICAL("鐗╃悊"),
+        SPECIAL("鐗规畩"),
+        STATUS("鍙樺寲");
 
         private final String chineseName;
 
@@ -50,8 +50,7 @@ public class Skill {
         if (power == 0 || category == SkillCategory.STATUS) return 0;
 
         double effectiveness = calculateTypeEffectiveness(defender.getType());
-        
-        // ? 删除了 System.out.println，防止服务器刷屏
+
         if (effectiveness == 0) {
             return 0;
         }
@@ -64,7 +63,6 @@ public class Skill {
     }
 
     private double calculateTypeEffectiveness(PocketMon.Type defenderType) {
-        // 简单的属性克制表
         switch (this.type) {
             case GRASS:
                 if (defenderType == PocketMon.Type.WATER) return 2.0;

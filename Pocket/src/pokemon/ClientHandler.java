@@ -7,9 +7,9 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    
-    private Player player;       // µ±Ç°Á¬½ÓµÄÍæ¼Ò¶ÔÏó
-    private Room currentRoom;    // Íæ¼Òµ±Ç°µÄÎ»ÖÃ
+
+    private Player player;       // å½“å‰è¿æ¥çš„ç©å®¶å¯¹è±¡
+    private Room currentRoom;    // ç©å®¶å½“å‰çš„ä½ç½®
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -18,46 +18,45 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // ±£³Ö GBK ±àÂë£¬·ÀÖ¹ÂÒÂë
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "GBK"));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "GBK"), true);
 
-            // --- 1. µÇÂ¼Óë³õÊ¼»¯ ---
-            out.println("»¶Ó­À´µ½±¦¿ÉÃÎ MUD ÊÀ½ç£¡");
-            out.println("ÇëÊäÈëÄãµÄÃû×Ö£º");
-            
-            String name = in.readLine();
-            if (name == null || name.trim().isEmpty()) name = "ÎŞÃûÑµÁ·Ê¦";
-            
-            player = new Player(name); 
-            // ËÍÒ»Ö»³õÊ¼±¦¿ÉÃÎ£¬·ÀÖ¹Ò»³öÃÅ¾Í±»´òËÀ
-            player.setStarterPokemon(new PocketMon("Æ¤¿¨Çğ", PocketMon.Type.ELECTRIC, 5));
+            // --- 1. ç™»å½•ä¸åˆå§‹åŒ– ---
+            out.println("æ¬¢è¿æ¥åˆ°å®å¯æ¢¦ MUD ä¸–ç•Œï¼");
+            out.println("è¯·è¾“å…¥ä½ çš„åå­—ï¼š");
 
-            // ´Ó¹«¹²µØÍ¼»ñÈ¡³öÉúµã
-            currentRoom = WorldManager.getStartRoom(); 
-            
-            // ½ø·¿µÇ¼Ç
+            String name = in.readLine();
+            if (name == null || name.trim().isEmpty()) name = "æ— åè®­ç»ƒå¸ˆ";
+
+            player = new Player(name);
+            // é€ä¸€åªåˆå§‹å®å¯æ¢¦ï¼Œé˜²æ­¢ä¸€å‡ºé—¨å°±è¢«æ‰“æ­»
+            player.setStarterPokemon(new PocketMon("çš®å¡ä¸˜", PocketMon.Type.ELECTRIC, 5));
+
+            // ä»å…¬å…±åœ°å›¾è·å–å‡ºç”Ÿç‚¹
+            currentRoom = WorldManager.getStartRoom();
+
+            // è¿›æˆ¿ç™»è®°
             if (currentRoom != null) {
                 currentRoom.addPlayer(this.player);
             }
 
-            // ¸æËßÍæ¼ÒÏÖÔÚÔÚÄÄ
+            // å‘Šè¯‰ç©å®¶ç°åœ¨åœ¨å“ª
             printRoomInfo();
 
-            // --- 2. ÓÎÏ·Ö÷Ñ­»· (¼àÌıÖ¸Áî) ---
+            // --- 2. æ¸¸æˆä¸»å¾ªç¯ (ç›‘å¬æŒ‡ä»¤) ---
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 inputLine = inputLine.trim();
-                System.out.println("Íæ¼Ò [" + name + "] Ö´ĞĞ: " + inputLine);
-                
-                // ´¦ÀíËùÓĞÖ¸Áî
+                System.out.println("ç©å®¶ [" + name + "] æ‰§è¡Œ: " + inputLine);
+
+                // å¤„ç†æ‰€æœ‰æŒ‡ä»¤
                 processCommand(inputLine);
             }
 
         } catch (IOException e) {
-            System.out.println("Íæ¼Ò [" + (player != null ? player.getName() : "Î´Öª") + "] ¶Ï¿ªÁ¬½Ó");
+            System.out.println("ç©å®¶ [" + (player != null ? player.getName() : "æœªçŸ¥") + "] æ–­å¼€è¿æ¥");
         } finally {
-            // --- 3. ÏÂÏßÇåÀí ---
+            // --- 3. ä¸‹çº¿æ¸…ç† ---
             try {
                 if (currentRoom != null && player != null) {
                     currentRoom.removePlayer(player);
@@ -68,8 +67,8 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-    
-    // --- Ö¸Áî´¦ÀíÖĞĞÄ (ÕâÀï¼ÓÈëÁËĞÂÖ¸Áî£¡) ---
+
+    // --- æŒ‡ä»¤å¤„ç†ä¸­å¿ƒ ---
     private void processCommand(String cmd) {
         String[] parts = cmd.split(" ");
         String action = parts[0].toLowerCase();
@@ -77,126 +76,123 @@ public class ClientHandler implements Runnable {
         switch (action) {
             case "go":
                 if (parts.length > 1) {
-                    handleMove(parts[1]); 
+                    handleMove(parts[1]);
                 } else {
-                    out.println("ÄãÒªÈ¥ÄÄÀï£¿(ÀıÈç: go north)");
+                    out.println("ä½ è¦å»å“ªé‡Œï¼Ÿ(ä¾‹å¦‚: go north)");
                 }
                 break;
-                
+
             case "look":
                 printRoomInfo();
                 break;
-                
-            // === ? ĞÂÔö£º²é¿´×´Ì¬ ===
+
+            // === æŸ¥çœ‹çŠ¶æ€ ===
             case "status":
                 out.println(player.getStatus());
                 break;
-                
-            // === ? ĞÂÔö£º²é¿´±³°ü ===
+
+            // === æŸ¥çœ‹èƒŒåŒ… ===
             case "bag":
                 out.println(player.getBagContent());
                 break;
 
-            // === ? ĞÂÔö£ºÖÎÁÆ (±ØĞëÔÚ±¦¿ÉÃÎÖĞĞÄ) ===
+            // === æ²»ç–— (å¿…é¡»åœ¨å®å¯æ¢¦ä¸­å¿ƒ) ===
             case "heal":
                 if (currentRoom.getId().equals("pokemon_center")) {
-                     out.println(player.healTeam());
+                    out.println(player.healTeam());
                 } else {
-                     out.println("Ö»ÓĞÔÚ¡¾±¦¿ÉÃÎÖĞĞÄ¡¿²ÅÄÜÖÎÁÆÅ¶£¡");
+                    out.println("åªæœ‰åœ¨ã€å®å¯æ¢¦ä¸­å¿ƒã€‘æ‰èƒ½æ²»ç–—å“¦ï¼");
                 }
                 break;
 
-            // === ? ĞÂÔö£º´ò¹¤ (±ØĞëÔÚ´ò¹¤³¡Ëù) ===
+            // === æ‰“å·¥ (å¿…é¡»åœ¨æ‰“å·¥åœºæ‰€) ===
             case "work":
-                 if (currentRoom.getId().equals("work_place")) {
-                     out.println(player.work());
-                 } else {
-                     out.println("ÕâÀï²»ÄÜ´ò¹¤£¡ÇëÈ¥¡¾³£ÇàÊĞ¡¿±±±ßµÄ´ò¹¤³¡Ëù¡£");
-                 }
-                 break;
-            
-            // === ? ĞÂÔö£º°ïÖú²Ëµ¥ ===
-            case "help":
-                out.println("=== ¿ÉÓÃÖ¸Áî ===");
-                out.println("ÒÆ¶¯: go [north/south/east/west]");
-                out.println("×´Ì¬: status");
-                out.println("±³°ü: bag");
-                out.println("¹Û²ì: look");
-                out.println("ÌØÊâ: heal (ÖÎÁÆ), work (´ò¹¤)");
-                out.println("Àë¿ª: exit");
+                if (currentRoom.getId().equals("work_place")) {
+                    out.println(player.work());
+                } else {
+                    out.println("è¿™é‡Œä¸èƒ½æ‰“å·¥ï¼è¯·å»ã€å¸¸é’å¸‚ã€‘åŒ—è¾¹çš„æ‰“å·¥åœºæ‰€ã€‚");
+                }
                 break;
-                
+
+            // === å¸®åŠ©èœå• ===
+            case "help":
+                out.println("=== å¯ç”¨æŒ‡ä»¤ ===");
+                out.println("ç§»åŠ¨: go [north/south/east/west]");
+                out.println("çŠ¶æ€: status");
+                out.println("èƒŒåŒ…: bag");
+                out.println("è§‚å¯Ÿ: look");
+                out.println("ç‰¹æ®Š: heal (æ²»ç–—), work (æ‰“å·¥)");
+                out.println("ç¦»å¼€: exit");
+                break;
+
             case "exit":
-                out.println("ÔÙ¼û£¡");
+                out.println("å†è§ï¼");
                 break;
             default:
-                out.println("ÎÒ²»¶®Õâ¸öÖ¸Áî: " + cmd);
+                out.println("æˆ‘ä¸æ‡‚è¿™ä¸ªæŒ‡ä»¤: " + cmd);
         }
     }
 
-    // --- ºËĞÄÂß¼­£ºÒÆ¶¯ (¼ÓÈëÁËËæ»úÓöµĞ£¡) ---
+    // --- æ ¸å¿ƒé€»è¾‘ï¼šç§»åŠ¨ (åŠ å…¥äº†éšæœºé‡æ•Œï¼) ---
     private void handleMove(String direction) {
         String nextRoomId = currentRoom.getExit(direction);
 
         if (nextRoomId == null) {
-            out.println("ÄÇ¸ö·½ÏòÃ»ÓĞÂ·£¡");
+            out.println("é‚£ä¸ªæ–¹å‘æ²¡æœ‰è·¯ï¼");
             return;
         }
 
         Room nextRoom = WorldManager.getRoom(nextRoomId);
 
         if (nextRoom != null) {
-            // A. Àë¿ª¾É·¿¼ä
+            // A. ç¦»å¼€æ—§æˆ¿é—´
             currentRoom.removePlayer(this.player);
-            
-            // B. ¸Ä±äÎ»ÖÃ
+
+            // B. æ”¹å˜ä½ç½®
             currentRoom = nextRoom;
-            
-            // C. ½øÈëĞÂ·¿¼ä
+
+            // C. è¿›å…¥æ–°æˆ¿é—´
             currentRoom.addPlayer(this.player);
 
-            // D. ´òÓ¡ĞÂ»·¾³
+            // D. æ‰“å°æ–°ç¯å¢ƒ
             printRoomInfo();
-            
-            // === ?? E. Ëæ»úÓöµĞÂß¼­ (ĞÂÔö!) ===
+
+            // === E. éšæœºé‡æ•Œé€»è¾‘ ===
             checkRandomEncounter();
         }
     }
-    
-    // --- Õ½¶·´¥·¢¼ì²é ---
+
+    // --- æˆ˜æ–—è§¦å‘æ£€æŸ¥ ---
     private void checkRandomEncounter() {
-        // ´Ó·¿¼ä»ñÈ¡Ò°Éú±¦¿ÉÃÎ
+        // ä»æˆ¿é—´è·å–é‡ç”Ÿå®å¯æ¢¦
         PocketMon wildPokemon = currentRoom.getRandomWildPokemon();
-        
-        // Èç¹ûÕâÀïÓĞ¹Ö£¬²¢ÇÒËæ»úÊıĞ¡ÓÚ 0.4 (40%¼¸ÂÊ)
+
+        // å¦‚æœè¿™é‡Œæœ‰æ€ªï¼Œå¹¶ä¸”éšæœºæ•°å°äº 0.4 (40%å‡ ç‡)
         if (wildPokemon != null && Math.random() < 0.4) {
-            out.println("\n?? ²İ´ÔÀïÓĞÊ²Ã´¶«Î÷ÔÚ¶¯...");
+            out.println("\nâš ï¸ è‰ä¸›é‡Œæœ‰ä»€ä¹ˆä¸œè¥¿åœ¨åŠ¨...");
             try { Thread.sleep(1000); } catch (InterruptedException e) {}
 
-            // ´´½¨Ò»¸öĞÂµÄ±¦¿ÉÃÎ¶ÔÏó£¨·ñÔò´òËÀÒ»´Î¾ÍÃ»ÁË£©
-            // ÕâÀï¼òµ¥´¦Àí£¬Ö±½ÓÓÃ room ÀïµÄ¶ÔÏó£¨ÕıÊ½°æ×îºÃ clone Ò»¸ö£©
-            
-            // Æô¶¯Õ½¶·£¡°Ñ socket µÄÊäÈëÊä³öÁ÷´«¸ø BattleSystem
+            // å¯åŠ¨æˆ˜æ–—ç³»ç»Ÿ
             BattleSystem battle = new BattleSystem(this.player, wildPokemon, this.out, this.in);
             battle.startBattle();
-            
-            // Õ½¶·½áÊøºó£¬ÖØĞÂ´òÓ¡·¿¼äĞÅÏ¢£¬ÒÔÃâÍæ¼ÒÃÔÂ·
+
+            // æˆ˜æ–—ç»“æŸåï¼Œé‡æ–°æ‰“å°æˆ¿é—´ä¿¡æ¯
             if (this.player.getFirstPokemon() != null && !this.player.getFirstPokemon().isFainted()) {
-                 printRoomInfo();
+                printRoomInfo();
             }
         }
     }
 
     private void printRoomInfo() {
         if (currentRoom == null) return;
-        
+
         out.println("================================");
-        out.println(currentRoom.getFullDescription()); 
-        out.println("¿ÉÓÃ³ö¿Ú: " + currentRoom.getAvailableExits());
-        out.println(currentRoom.getPlayerNames(this.player)); 
+        out.println(currentRoom.getFullDescription());
+        out.println("å¯ç”¨å‡ºå£: " + currentRoom.getAvailableExits());
+        out.println(currentRoom.getPlayerNames(this.player));
         out.println("================================");
     }
-    
+
     public void sendMessage(String msg) {
         out.println(msg);
     }

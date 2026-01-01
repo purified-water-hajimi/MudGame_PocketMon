@@ -6,38 +6,38 @@ import java.util.*;
 
 public class GameServer {
     private static final int PORT = 6666;
-    
-    // ÓÃÀ´´æ·ÅËùÓĞÔÚÏßÍæ¼ÒµÄÁĞ±í£¬·½±ã¹ã²¥ÏûÏ¢
+
+    // å­˜æ”¾æ‰€æœ‰åœ¨çº¿ç©å®¶çš„åˆ—è¡¨ (çº¿ç¨‹å®‰å…¨)
     private static List<ClientHandler> onlinePlayers = new Vector<>();
 
     public static void main(String[] args) {
-        System.out.println("? ÓÎÏ··şÎñÆ÷ÕıÔÚÆô¶¯...");
-        
+        System.out.println("âœ… æ¸¸æˆæœåŠ¡å™¨æ­£åœ¨å¯åŠ¨...");
+
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            System.out.println("? ·şÎñÆ÷ÒÑÆô¶¯£¡¼àÌı¶Ë¿Ú: " + PORT);
-            System.out.println("µÈ´ıÍæ¼ÒÁ¬½Ó...");
+            System.out.println("âœ… æœåŠ¡å™¨å·²å¯åŠ¨ï¼ç›‘å¬ç«¯å£: " + PORT);
+            System.out.println("ç­‰å¾…ç©å®¶è¿æ¥...");
 
             while (true) {
-                // 1. ×èÈûµÈ´ı£ºÕâÀï»á¿¨×¡£¬Ö±µ½ÓĞÈËÁ¬½øÀ´
-                Socket socket = serverSocket.accept(); 
-                System.out.println("? ÓĞ¸öĞÂÍæ¼ÒÁ¬½øÀ´ÁË£¡IP: " + socket.getInetAddress());
+                // 1. ç­‰å¾…å®¢æˆ·ç«¯è¿æ¥ (ä¼šé˜»å¡ç›´åˆ°æœ‰è¿æ¥)
+                Socket socket = serverSocket.accept();
+                System.out.println("ğŸ‘‹ æœ‰ä¸ªæ–°ç©å®¶è¿è¿›æ¥äº†ï¼IP: " + socket.getInetAddress());
 
-                // 2. ÎªÕâ¸öÍæ¼Òµ¥¶À¹ÍÓ¶Ò»¸ö¡°·şÎñÔ±¡± (Ïß³Ì)
+                // 2. ä¸ºæ¯ä¸ªè¿æ¥åˆ›å»ºä¸€ä¸ªå¤„ç†çº¿ç¨‹
                 ClientHandler handler = new ClientHandler(socket);
                 onlinePlayers.add(handler);
-                
-                // 3. Æô¶¯Õâ¸ö·şÎñÔ±Ïß³Ì£¬ÈÃËûÈ¥×¨ÃÅËÅºòÕâ¸öÍæ¼Ò
+
+                // 3. å¯åŠ¨çº¿ç¨‹ï¼Œå¼€å§‹ä¸ºè¿™ä¸ªç©å®¶æœåŠ¡
                 new Thread(handler).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
-    // ¹ã²¥·½·¨£ºÈÃËùÓĞÈË¶¼ÄÜÊÕµ½ÏûÏ¢£¨±ÈÈç¡°Ä³Ä³Ä³½øÈëÁË·¿¼ä¡±£©
+
+    // å¹¿æ’­æ¶ˆæ¯ç»™æ‰€æœ‰ç©å®¶ (æ¯”å¦‚â€œæŸæŸæŸä¸Šçº¿äº†â€)
     public static void broadcast(String message, ClientHandler sender) {
         for (ClientHandler player : onlinePlayers) {
-            // ¿ÉÒÔÑ¡Ôñ·¢¸øËùÓĞÈË£¬»òÕßÅÅ³ı·¢ËÍÕß×Ô¼º
+            // å¯ä»¥é€‰æ‹©è·³è¿‡å‘é€è€…
             player.sendMessage(message);
         }
     }

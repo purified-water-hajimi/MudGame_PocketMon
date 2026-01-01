@@ -1,295 +1,295 @@
-package pokemon;
+// package pokemon;
 
-import java.util.Scanner;
+// import java.util.Scanner;
 
-public class GameMain {
-    private WorldManager world;
-    private Player player;
-    private Scanner scanner;
-    private boolean gameRunning;
+// public class GameMain {
+//     private WorldManager world;
+//     private Player player;
+//     private Scanner scanner;
+//     private boolean gameRunning;
 
-    public GameMain() {
-        this.world = new WorldManager();
-        this.scanner = new Scanner(System.in);
-        this.gameRunning = true;
-    }
+//     public GameMain() {
+//         this.world = new WorldManager();
+//         this.scanner = new Scanner(System.in);
+//         this.gameRunning = true;
+//     }
 
-    public void startGame() {
-        showGameIntroduction();
-        initializePlayer();
+//     public void startGame() {
+//         showGameIntroduction();
+//         initializePlayer();
 
-        System.out.println("\n" + world.getCurrentRoomInfo());
+//         System.out.println("\n" + world.getCurrentRoomInfo());
 
-        while (gameRunning) {
-            System.out.print("\n> ");
-            String input = scanner.nextLine().trim().toLowerCase();
+//         while (gameRunning) {
+//             System.out.print("\n> ");
+//             String input = scanner.nextLine().trim().toLowerCase();
 
-            if (input.equals("quit") || input.equals("exit")) {
-                System.out.println("å†è§ï¼æœŸå¾…å†æ¬¡å†’é™©ï¼");
-                break;
-            }
+//             if (input.equals("quit") || input.equals("exit")) {
+//                 System.out.println("ÔÙ¼û£¡ÆÚ´ıÔÙ´ÎÃ°ÏÕ£¡");
+//                 break;
+//             }
 
-            processCommand(input);
-        }
+//             processCommand(input);
+//         }
 
-        scanner.close();
-    }
+//         scanner.close();
+//     }
 
-    private void showGameIntroduction() {
-        System.out.println("=== å®å¯æ¢¦æ–‡å­—MUDæ¸¸æˆ ===");
-        sleep(1000);
-        System.out.println("\næ¬¢è¿æ¥åˆ°å®å¯æ¢¦ä¸–ç•Œï¼è¿™æ˜¯ä¸€ä¸ªå……æ»¡å†’é™©å’Œå‹è°Šçš„ä¸–ç•Œã€‚");
-        sleep(1200);
-        showHelp();
-        sleep(1000);
-        System.out.println("\næŒ‰ä¸‹å›è½¦é”®å¼€å§‹ä½ çš„å†’é™©...");
-        scanner.nextLine();
-    }
+//     private void showGameIntroduction() {
+//         System.out.println("=== ±¦¿ÉÃÎÎÄ×ÖMUDÓÎÏ· ===");
+//         sleep(1000);
+//         System.out.println("\n»¶Ó­À´µ½±¦¿ÉÃÎÊÀ½ç£¡ÕâÊÇÒ»¸ö³äÂúÃ°ÏÕºÍÓÑÒêµÄÊÀ½ç¡£");
+//         sleep(1200);
+//         showHelp();
+//         sleep(1000);
+//         System.out.println("\n°´ÏÂ»Ø³µ¼ü¿ªÊ¼ÄãµÄÃ°ÏÕ...");
+//         scanner.nextLine();
+//     }
 
-    private void initializePlayer() {
-        System.out.println("\nã€çœŸæ–°é•‡ - ä½ çš„æˆ¿é—´ã€‘");
-        sleep(800);
-        System.out.println("é˜³å…‰é€è¿‡çª—æˆ·æ´’åœ¨åœ°æ¯¯ä¸Šã€‚å¢™ä¸Šè´´ç€å„ç§å®å¯æ¢¦æµ·æŠ¥ï¼Œä¹¦åŒ…å·²ç»æ”¶æ‹¾å¥½æ”¾åœ¨åºŠè¾¹ã€‚");
-        sleep(1200);
-        System.out.println("å¦ˆå¦ˆåœ¨æ¥¼ä¸‹å–Šé“ï¼š\"å¿«ç‚¹ï¼Œå¤§æœ¨åšå£«åœ¨ç­‰ä½ ï¼\"");
-        sleep(1000);
+//     private void initializePlayer() {
+//         System.out.println("\n¡¾ÕæĞÂÕò - ÄãµÄ·¿¼ä¡¿");
+//         sleep(800);
+//         System.out.println("Ñô¹âÍ¸¹ı´°»§È÷ÔÚµØÌºÉÏ¡£Ç½ÉÏÌù×Å¸÷ÖÖ±¦¿ÉÃÎº£±¨£¬Êé°üÒÑ¾­ÊÕÊ°ºÃ·ÅÔÚ´²±ß¡£");
+//         sleep(1200);
+//         System.out.println("ÂèÂèÔÚÂ¥ÏÂº°µÀ£º\"¿ìµã£¬´óÄ¾²©Ê¿ÔÚµÈÄã£¡\"");
+//         sleep(1000);
 
-        System.out.print("\nè¯·è¾“å…¥ä½ çš„è®­ç»ƒå®¶åå­—: ");
-        String playerName = scanner.nextLine().trim();
-        if (playerName.isEmpty()) playerName = "å°æ™º";
+//         System.out.print("\nÇëÊäÈëÄãµÄÑµÁ·¼ÒÃû×Ö: ");
+//         String playerName = scanner.nextLine().trim();
+//         if (playerName.isEmpty()) playerName = "Ğ¡ÖÇ";
 
-        this.player = new Player(playerName);
-        sleep(800);
-        System.out.println("\nå¦ˆå¦ˆï¼š\"ç»ˆäºä¸‹æ¥äº†ï¼è¿™æ˜¯ç»™ä½ çš„ä¾¿å½“ã€‚å¤§æœ¨åšå£«è¯´å¦å¤–ä¸¤ä¸ªå­©å­å·²ç»åˆ°äº†ï¼Œå¿«å»å§ï¼\"");
-        sleep(1500);
+//         this.player = new Player(playerName);
+//         sleep(800);
+//         System.out.println("\nÂèÂè£º\"ÖÕÓÚÏÂÀ´ÁË£¡ÕâÊÇ¸øÄãµÄ±ãµ±¡£´óÄ¾²©Ê¿ËµÁíÍâÁ½¸öº¢×ÓÒÑ¾­µ½ÁË£¬¿ìÈ¥°É£¡\"");
+//         sleep(1500);
 
-        System.out.println("\nä½ å†²å‡ºå®¶é—¨ï¼Œæ²¿ç€å°è·¯å¥”è·‘...");
-        sleep(1200);
-        System.out.println("æŒ‰ä¸‹å›è½¦é”®ç»§ç»­...");
-        scanner.nextLine();
+//         System.out.println("\nÄã³å³ö¼ÒÃÅ£¬ÑØ×ÅĞ¡Â·±¼ÅÜ...");
+//         sleep(1200);
+//         System.out.println("°´ÏÂ»Ø³µ¼ü¼ÌĞø...");
+//         scanner.nextLine();
 
-        chooseStarterPokemon();
-    }
+//         chooseStarterPokemon();
+//     }
 
-    private void chooseStarterPokemon() {
-        System.out.println("\nã€å¤§æœ¨åšå£«ç ”ç©¶æ‰€ã€‘");
-        sleep(800);
-        System.out.println("ä½ æ°”å–˜åååœ°è·‘è¿›ç ”ç©¶æ‰€ï¼Œçœ‹åˆ°å¤§æœ¨åšå£«å’Œå¦å¤–ä¸¤ä¸ªè®­ç»ƒå®¶ç«™åœ¨å®éªŒå°å‰ã€‚");
-        sleep(1500);
-        System.out.println("å¤§æœ¨åšå£«ï¼š\"å•Šï¼Œ" + player.getName() + "ï¼ä½ æ¥äº†ï¼æˆ‘ä»¬åˆšåˆšå¼€å§‹ã€‚æ¥å§ï¼Œé€‰æ‹©ä½ çš„ä¼™ä¼´ã€‚\"");
-        sleep(1500);
+//     private void chooseStarterPokemon() {
+//         System.out.println("\n¡¾´óÄ¾²©Ê¿ÑĞ¾¿Ëù¡¿");
+//         sleep(800);
+//         System.out.println("ÄãÆø´­ÓõÓõµØÅÜ½øÑĞ¾¿Ëù£¬¿´µ½´óÄ¾²©Ê¿ºÍÁíÍâÁ½¸öÑµÁ·¼ÒÕ¾ÔÚÊµÑéÌ¨Ç°¡£");
+//         sleep(1500);
+//         System.out.println("´óÄ¾²©Ê¿£º\"°¡£¬" + player.getName() + "£¡ÄãÀ´ÁË£¡ÎÒÃÇ¸Õ¸Õ¿ªÊ¼¡£À´°É£¬Ñ¡ÔñÄãµÄ»ï°é¡£\"");
+//         sleep(1500);
 
-        System.out.println("\nå®éªŒå°ä¸Šæ”¾ç€ä¸‰ä¸ªç²¾çµçƒï¼š");
-        sleep(800);
-        System.out.println("ğŸ”¥ ã€å°ç«é¾™ã€‘- ç«ç„°å®å¯æ¢¦ï¼Œæ€§æ ¼å‹‡æ•¢ï¼Œæ“…é•¿ç‰¹æ®Šæ”»å‡»");
-        sleep(1000);
-        System.out.println("ğŸ’§ ã€æ°å°¼é¾Ÿã€‘- é¾Ÿç”²å®å¯æ¢¦ï¼Œæ€§æ ¼é¡½çš®ï¼Œé˜²å¾¡å‡ºä¼—");
-        sleep(1000);
-        System.out.println("ğŸŒ¿ ã€å¦™è›™ç§å­ã€‘- ç§å­å®å¯æ¢¦ï¼Œæ€§æ ¼å†·é™ï¼Œèƒ½åŠ›å‡è¡¡");
-        sleep(1000);
-        System.out.println("\nå…¶ä»–ä¸¤ä¸ªè®­ç»ƒå®¶æœŸå¾…åœ°çœ‹ç€ä½ ï¼Œå…¶ä¸­ä¸€ä¸ªå·²ç»ä¼¸æ‰‹å‘å°ç«é¾™...");
-        sleep(1500);
+//         System.out.println("\nÊµÑéÌ¨ÉÏ·Å×ÅÈı¸ö¾«ÁéÇò£º");
+//         sleep(800);
+//         System.out.println("? ¡¾Ğ¡»ğÁú¡¿- »ğÑæ±¦¿ÉÃÎ£¬ĞÔ¸ñÓÂ¸Ò£¬ÉÃ³¤ÌØÊâ¹¥»÷");
+//         sleep(1000);
+//         System.out.println("? ¡¾½ÜÄá¹ê¡¿- ¹ê¼×±¦¿ÉÃÎ£¬ĞÔ¸ñÍçÆ¤£¬·ÀÓù³öÖÚ");
+//         sleep(1000);
+//         System.out.println("? ¡¾ÃîÍÜÖÖ×Ó¡¿- ÖÖ×Ó±¦¿ÉÃÎ£¬ĞÔ¸ñÀä¾²£¬ÄÜÁ¦¾ùºâ");
+//         sleep(1000);
+//         System.out.println("\nÆäËûÁ½¸öÑµÁ·¼ÒÆÚ´ıµØ¿´×ÅÄã£¬ÆäÖĞÒ»¸öÒÑ¾­ÉìÊÖÏòĞ¡»ğÁú...");
+//         sleep(1500);
 
-        boolean validChoice = false;
-        while (!validChoice) {
-            System.out.print("\nè¯·é€‰æ‹©ä½ çš„ä¼™ä¼´ï¼ˆè¾“å…¥ å¦™è›™ç§å­/æ°å°¼é¾Ÿ/å°ç«é¾™ï¼‰: ");
-            String choice = scanner.nextLine().trim();
+//         boolean validChoice = false;
+//         while (!validChoice) {
+//             System.out.print("\nÇëÑ¡ÔñÄãµÄ»ï°é£¨ÊäÈë ÃîÍÜÖÖ×Ó/½ÜÄá¹ê/Ğ¡»ğÁú£©: ");
+//             String choice = scanner.nextLine().trim();
 
-            switch (choice) {
-                case "å¦™è›™ç§å­":
-                    System.out.println("\nä½ åšå®šåœ°æŒ‡å‘å¦™è›™ç§å­ï¼š\"æˆ‘é€‰æ‹©å®ƒï¼\"");
-                    sleep(1000);
-                    System.out.println("å¦™è›™ç§å­è·³å‡ºç²¾çµçƒï¼Œäº²æ˜µåœ°è¹­äº†è¹­ä½ çš„è…¿ã€‚");
-                    sleep(1500);
-                    System.out.println("ğŸŒ¿ å¦™è›™ç§å­åŠ å…¥äº†ä½ çš„é˜Ÿä¼ï¼");
-                    sleep(1000);
-                    System.out.println("\nå¤§æœ¨åšå£«ï¼š\"å‡ºè‰²çš„é€‰æ‹©ï¼å¦™è›™ç§å­æ˜¯å€¼å¾—ä¿¡èµ–çš„ä¼™ä¼´ã€‚\"");
-                    sleep(1500);
-                    PocketMon baseurl = new PocketMon("å¦™è›™ç§å­", PocketMon.Type.GRASS, 5);
-                    player.setStarterPokemon(baseurl);
-                    validChoice = true;
-                    break;
-                case "æ°å°¼é¾Ÿ":
-                    System.out.println("\nä½ é€‰æ‹©äº†æ°å°¼é¾Ÿï¼Œä½†æ˜¯å¦ä¸€ä¸ªè®­ç»ƒå®¶æŠ¢å…ˆæ‹¿èµ°äº†å®ƒ...");
-                    sleep(1500);
-                    System.out.println("å¤§æœ¨åšå£«ï¼š\"æŠ±æ­‰ï¼Œæ°å°¼é¾Ÿå·²ç»è¢«é€‰èµ°äº†ã€‚è¯·é‡æ–°é€‰æ‹©ã€‚\"");
-                    sleep(1200);
-                    break;
-                case "å°ç«é¾™":
-                    System.out.println("\nä½ é€‰æ‹©äº†å°ç«é¾™ï¼Œä½†æ˜¯å¦ä¸€ä¸ªè®­ç»ƒå®¶æŠ¢å…ˆæ‹¿èµ°äº†å®ƒ...");
-                    sleep(1500);
-                    System.out.println("å¤§æœ¨åšå£«ï¼š\"æŠ±æ­‰ï¼Œå°ç«é¾™å·²ç»è¢«é€‰èµ°äº†ã€‚è¯·é‡æ–°é€‰æ‹©ã€‚\"");
-                    sleep(1200);
-                    break;
-                default:
-                    System.out.println("è¯·é€‰æ‹©æ­£ç¡®çš„å®å¯æ¢¦ï¼");
-                    sleep(800);
-                    break;
-            }
-        }
+//             switch (choice) {
+//                 case "ÃîÍÜÖÖ×Ó":
+//                     System.out.println("\nÄã¼á¶¨µØÖ¸ÏòÃîÍÜÖÖ×Ó£º\"ÎÒÑ¡ÔñËü£¡\"");
+//                     sleep(1000);
+//                     System.out.println("ÃîÍÜÖÖ×ÓÌø³ö¾«ÁéÇò£¬Ç×êÇµØ²äÁË²äÄãµÄÍÈ¡£");
+//                     sleep(1500);
+//                     System.out.println("? ÃîÍÜÖÖ×Ó¼ÓÈëÁËÄãµÄ¶ÓÎé£¡");
+//                     sleep(1000);
+//                     System.out.println("\n´óÄ¾²©Ê¿£º\"³öÉ«µÄÑ¡Ôñ£¡ÃîÍÜÖÖ×ÓÊÇÖµµÃĞÅÀµµÄ»ï°é¡£\"");
+//                     sleep(1500);
+//                     PocketMon baseurl = new PocketMon("ÃîÍÜÖÖ×Ó", PocketMon.Type.GRASS, 5);
+//                     player.setStarterPokemon(baseurl);
+//                     validChoice = true;
+//                     break;
+//                 case "½ÜÄá¹ê":
+//                     System.out.println("\nÄãÑ¡ÔñÁË½ÜÄá¹ê£¬µ«ÊÇÁíÒ»¸öÑµÁ·¼ÒÇÀÏÈÄÃ×ßÁËËü...");
+//                     sleep(1500);
+//                     System.out.println("´óÄ¾²©Ê¿£º\"±§Ç¸£¬½ÜÄá¹êÒÑ¾­±»Ñ¡×ßÁË¡£ÇëÖØĞÂÑ¡Ôñ¡£\"");
+//                     sleep(1200);
+//                     break;
+//                 case "Ğ¡»ğÁú":
+//                     System.out.println("\nÄãÑ¡ÔñÁËĞ¡»ğÁú£¬µ«ÊÇÁíÒ»¸öÑµÁ·¼ÒÇÀÏÈÄÃ×ßÁËËü...");
+//                     sleep(1500);
+//                     System.out.println("´óÄ¾²©Ê¿£º\"±§Ç¸£¬Ğ¡»ğÁúÒÑ¾­±»Ñ¡×ßÁË¡£ÇëÖØĞÂÑ¡Ôñ¡£\"");
+//                     sleep(1200);
+//                     break;
+//                 default:
+//                     System.out.println("ÇëÑ¡ÔñÕıÈ·µÄ±¦¿ÉÃÎ£¡");
+//                     sleep(800);
+//                     break;
+//             }
+//         }
 
-        System.out.println("\nå¤§æœ¨åšå£«é€’ç»™ä½ ï¼š");
-        sleep(800);
-        System.out.println("- âœ… å®å¯æ¢¦å›¾é‰´ï¼ˆå·²æ¿€æ´»ï¼‰");
-        sleep(600);
-        System.out.println("- âœ… ç²¾çµçƒ x5ï¼ˆè¿½åŠ ï¼‰");
-        sleep(600);
-        System.out.println("- âœ… ä¼¤è¯ x3");
-        sleep(600);
-        System.out.println("- âœ… 1000å…ƒå¯åŠ¨èµ„é‡‘");
-        sleep(1000);
-        System.out.println("\nå¤§æœ¨åšå£«ï¼š\"ç°åœ¨å¼€å§‹ä½ ä»¬çš„å†’é™©å§ï¼è®°ä½ï¼Œè¦å¡«æ»¡å›¾é‰´ï¼Œæˆä¸ºå®å¯æ¢¦å¤§å¸ˆï¼\"");
-        sleep(2000);
+//         System.out.println("\n´óÄ¾²©Ê¿µİ¸øÄã£º");
+//         sleep(800);
+//         System.out.println("- ? ±¦¿ÉÃÎÍ¼¼ø£¨ÒÑ¼¤»î£©");
+//         sleep(600);
+//         System.out.println("- ? ¾«ÁéÇò x5£¨×·¼Ó£©");
+//         sleep(600);
+//         System.out.println("- ? ÉËÒ© x3");
+//         sleep(600);
+//         System.out.println("- ? 1000ÔªÆô¶¯×Ê½ğ");
+//         sleep(1000);
+//         System.out.println("\n´óÄ¾²©Ê¿£º\"ÏÖÔÚ¿ªÊ¼ÄãÃÇµÄÃ°ÏÕ°É£¡¼Ç×¡£¬ÒªÌîÂúÍ¼¼ø£¬³ÉÎª±¦¿ÉÃÎ´óÊ¦£¡\"");
+//         sleep(2000);
 
-        System.out.println("\næŒ‰ä¸‹å›è½¦é”®å¼€å§‹å†’é™©...");
-        scanner.nextLine();
+//         System.out.println("\n°´ÏÂ»Ø³µ¼ü¿ªÊ¼Ã°ÏÕ...");
+//         scanner.nextLine();
 
-        world.movePlayer("east");
-        world.movePlayer("east");
-    }
+//         world.movePlayer("east");
+//         world.movePlayer("east");
+//     }
 
-    private void processCommand(String input) {
-        switch (input) {
-            case "n": case "north": world.movePlayer("north"); showCurrentLocation(); break;
-            case "s": case "south": world.movePlayer("south"); showCurrentLocation(); break;
-            case "e": case "east": world.movePlayer("east"); showCurrentLocation(); break;
-            case "w": case "west": world.movePlayer("west"); showCurrentLocation(); break;
-            case "look": showCurrentLocation(); break;
-            case "map": world.showMap(); break;
-            case "status": player.showStatus(); break;
-            case "bag": player.showBag(); break;
-            case "heal": player.healTeam(); break;
-            case "battle": startWildBattle(); break;
-            case "shop": showShop(); break;
-            case "work": player.work(); break;
-            case "help": showHelp(); break;
-            default:
-                if (input.startsWith("use ")) {
-                    String itemName = input.substring(4).trim();
-                    player.useItem(itemName);
-                } else if (input.startsWith("buy ")) {
-                    String itemName = input.substring(4).trim();
-                    buyItem(itemName);
-                } else {
-                    System.out.println("æœªçŸ¥å‘½ä»¤ã€‚è¾“å…¥ 'help' æŸ¥çœ‹å¸®åŠ©ã€‚");
-                }
-                break;
-        }
-    }
+//     private void processCommand(String input) {
+//         switch (input) {
+//             case "n": case "north": world.movePlayer("north"); showCurrentLocation(); break;
+//             case "s": case "south": world.movePlayer("south"); showCurrentLocation(); break;
+//             case "e": case "east": world.movePlayer("east"); showCurrentLocation(); break;
+//             case "w": case "west": world.movePlayer("west"); showCurrentLocation(); break;
+//             case "look": showCurrentLocation(); break;
+//             case "map": world.showMap(); break;
+//             case "status": player.showStatus(); break;
+//             case "bag": player.showBag(); break;
+//             case "heal": player.healTeam(); break;
+//             case "battle": startWildBattle(); break;
+//             case "shop": showShop(); break;
+//             case "work": player.work(); break;
+//             case "help": showHelp(); break;
+//             default:
+//                 if (input.startsWith("use ")) {
+//                     String itemName = input.substring(4).trim();
+//                     player.useItem(itemName);
+//                 } else if (input.startsWith("buy ")) {
+//                     String itemName = input.substring(4).trim();
+//                     buyItem(itemName);
+//                 } else {
+//                     System.out.println("Î´ÖªÃüÁî¡£ÊäÈë 'help' ²é¿´°ïÖú¡£");
+//                 }
+//                 break;
+//         }
+//     }
 
-    private void showCurrentLocation() {
-        System.out.println("\n" + world.getCurrentRoomInfo());
-    }
+//     private void showCurrentLocation() {
+//         System.out.println("\n" + world.getCurrentRoomInfo());
+//     }
 
-    private void showShop() {
-        System.out.println("\n=== å‹å¥½å•†åº— ===");
-        sleep(500);
-        System.out.println("æ¬¢è¿ï¼è¿™é‡Œæœ‰å„ç§å®å¯æ¢¦é“å…·ï¼š");
-        sleep(500);
-        System.out.println("1. ä¼¤è¯ - æ¢å¤20HP | ä»·æ ¼: 200å…ƒ");
-        sleep(300);
-        System.out.println("2. å¥½ä¼¤è¯ - æ¢å¤50HP | ä»·æ ¼: 500å…ƒ");
-        sleep(300);
-        System.out.println("3. ç²¾çµçƒ - æ•æ‰å®å¯æ¢¦ | ä»·æ ¼: 200å…ƒ");
-        sleep(300);
-        System.out.println("4. ç»éªŒç³–æœ - è·å¾—100ç»éªŒ | ä»·æ ¼: 300å…ƒ");
-        sleep(300);
-        System.out.println("5. æ”»å‡»å¼ºåŒ–å‰‚ - æš‚æ—¶æå‡æ”»å‡» | ä»·æ ¼: 400å…ƒ");
-        sleep(300);
-        System.out.println("6. é˜²å¾¡å¼ºåŒ–å‰‚ - æš‚æ—¶æå‡é˜²å¾¡ | ä»·æ ¼: 400å…ƒ");  // æ–°å¢
-        sleep(500);
-        System.out.println("\nä½¿ç”¨ 'buy [é“å…·å]' å‘½ä»¤è´­ä¹°é“å…·");
-        System.out.println("ä½ çš„é‡‘é’±: " + player.getMoney() + "å…ƒ");
-    }
+//     private void showShop() {
+//         System.out.println("\n=== ÓÑºÃÉÌµê ===");
+//         sleep(500);
+//         System.out.println("»¶Ó­£¡ÕâÀïÓĞ¸÷ÖÖ±¦¿ÉÃÎµÀ¾ß£º");
+//         sleep(500);
+//         System.out.println("1. ÉËÒ© - »Ö¸´20HP | ¼Û¸ñ: 200Ôª");
+//         sleep(300);
+//         System.out.println("2. ºÃÉËÒ© - »Ö¸´50HP | ¼Û¸ñ: 500Ôª");
+//         sleep(300);
+//         System.out.println("3. ¾«ÁéÇò - ²¶×½±¦¿ÉÃÎ | ¼Û¸ñ: 200Ôª");
+//         sleep(300);
+//         System.out.println("4. ¾­ÑéÌÇ¹û - »ñµÃ100¾­Ñé | ¼Û¸ñ: 300Ôª");
+//         sleep(300);
+//         System.out.println("5. ¹¥»÷Ç¿»¯¼Á - ÔİÊ±ÌáÉı¹¥»÷ | ¼Û¸ñ: 400Ôª");
+//         sleep(300);
+//         System.out.println("6. ·ÀÓùÇ¿»¯¼Á - ÔİÊ±ÌáÉı·ÀÓù | ¼Û¸ñ: 400Ôª");  // ĞÂÔö
+//         sleep(500);
+//         System.out.println("\nÊ¹ÓÃ 'buy [µÀ¾ßÃû]' ÃüÁî¹ºÂòµÀ¾ß");
+//         System.out.println("ÄãµÄ½ğÇ®: " + player.getMoney() + "Ôª");
+//     }
 
-    private void buyItem(String itemName) {
-        switch (itemName) {
-            case "ä¼¤è¯": player.buyItem("ä¼¤è¯", 200); break;
-            case "å¥½ä¼¤è¯": player.buyItem("å¥½ä¼¤è¯", 500); break;
-            case "ç²¾çµçƒ": player.buyItem("ç²¾çµçƒ", 200); break;
-            case "ç»éªŒç³–æœ": player.buyItem("ç»éªŒç³–æœ", 300); break;
-            case "æ”»å‡»å¼ºåŒ–å‰‚": player.buyItem("æ”»å‡»å¼ºåŒ–å‰‚", 400); break;
-            case "é˜²å¾¡å¼ºåŒ–å‰‚": player.buyItem("é˜²å¾¡å¼ºåŒ–å‰‚", 400); break;  // æ–°å¢
-            default: System.out.println("æ²¡æœ‰è¿™ä¸ªå•†å“ï¼"); break;
-        }
-    }
+//     private void buyItem(String itemName) {
+//         switch (itemName) {
+//             case "ÉËÒ©": player.buyItem("ÉËÒ©", 200); break;
+//             case "ºÃÉËÒ©": player.buyItem("ºÃÉËÒ©", 500); break;
+//             case "¾«ÁéÇò": player.buyItem("¾«ÁéÇò", 200); break;
+//             case "¾­ÑéÌÇ¹û": player.buyItem("¾­ÑéÌÇ¹û", 300); break;
+//             case "¹¥»÷Ç¿»¯¼Á": player.buyItem("¹¥»÷Ç¿»¯¼Á", 400); break;
+//             case "·ÀÓùÇ¿»¯¼Á": player.buyItem("·ÀÓùÇ¿»¯¼Á", 400); break;  // ĞÂÔö
+//             default: System.out.println("Ã»ÓĞÕâ¸öÉÌÆ·£¡"); break;
+//         }
+//     }
 
-    private void startWildBattle() {
-        System.out.println("æ­£åœ¨å¯»æ‰¾é‡ç”Ÿå®å¯æ¢¦...");
-        sleep(1000);
-        PocketMon wildPokemon = world.getRandomWildPokemon();
-        if (wildPokemon != null) {
-            BattleSystem battle = new BattleSystem(player, wildPokemon);
-            battle.startBattle();
-        } else {
-            System.out.println("è¿™é‡Œæ²¡æœ‰é‡ç”Ÿå®å¯æ¢¦ã€‚");
-            sleep(800);
-            System.out.println("æç¤ºï¼šåªæœ‰åœ¨é‡å¤–åŒºåŸŸæ‰èƒ½é‡åˆ°é‡ç”Ÿå®å¯æ¢¦ã€‚");
-            sleep(800);
-            System.out.println("æœ‰é‡ç”Ÿå®å¯æ¢¦çš„åŒºåŸŸï¼š1å·é“è·¯(north)ã€å¸¸é’æ£®æ—(south)");
-        }
-    }
+//     private void startWildBattle() {
+//         System.out.println("ÕıÔÚÑ°ÕÒÒ°Éú±¦¿ÉÃÎ...");
+//         sleep(1000);
+//         PocketMon wildPokemon = world.getRandomWildPokemon();
+//         if (wildPokemon != null) {
+//             BattleSystem battle = new BattleSystem(player, wildPokemon);
+//             battle.startBattle();
+//         } else {
+//             System.out.println("ÕâÀïÃ»ÓĞÒ°Éú±¦¿ÉÃÎ¡£");
+//             sleep(800);
+//             System.out.println("ÌáÊ¾£ºÖ»ÓĞÔÚÒ°ÍâÇøÓò²ÅÄÜÓöµ½Ò°Éú±¦¿ÉÃÎ¡£");
+//             sleep(800);
+//             System.out.println("ÓĞÒ°Éú±¦¿ÉÃÎµÄÇøÓò£º1ºÅµÀÂ·(north)¡¢³£ÇàÉ­ÁÖ(south)");
+//         }
+//     }
 
-    private void showHelp() {
-        System.out.println("\n=== æ¸¸æˆå‘½ä»¤æŒ‡å¼• ===");
-        sleep(800);
-        System.out.println("ğŸƒâ€â™‚ï¸ ç§»åŠ¨å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  north(n)     - å‘åŒ—ç§»åŠ¨");
-        sleep(400);
-        System.out.println("  south(s)     - å‘å—ç§»åŠ¨");
-        sleep(400);
-        System.out.println("  east(e)      - å‘ä¸œç§»åŠ¨");
-        sleep(400);
-        System.out.println("  west(w)      - å‘è¥¿ç§»åŠ¨");
-        sleep(600);
-        System.out.println("\nğŸ“Š çŠ¶æ€å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  status       - æŸ¥çœ‹è®­ç»ƒå®¶å’Œå®å¯æ¢¦çŠ¶æ€");
-        sleep(400);
-        System.out.println("  bag          - æŸ¥çœ‹èƒŒåŒ…ç‰©å“");
-        sleep(400);
-        System.out.println("  look         - æŸ¥çœ‹å½“å‰ä½ç½®è¯¦æƒ…");
-        sleep(400);
-        System.out.println("  map          - æŸ¥çœ‹å½“å‰åœ°å›¾");
-        sleep(600);
-        System.out.println("\nâš”ï¸ æˆ˜æ–—å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  battle       - ä¸é‡ç”Ÿå®å¯æ¢¦æˆ˜æ–—ï¼ˆåœ¨é‡å¤–åŒºåŸŸï¼‰");
-        sleep(400);
-        System.out.println("  heal         - æ¢å¤æ‰€æœ‰å®å¯æ¢¦çš„HP");
-        sleep(600);
-        System.out.println("\nğŸ›’ å•†åº—å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  shop         - æŸ¥çœ‹å•†åº—å•†å“");
-        sleep(400);
-        System.out.println("  buy [é“å…·å] - è´­ä¹°æŒ‡å®šé“å…·");
-        sleep(600);
-        System.out.println("\nğŸ’° ç»æµå‘½ä»¤:");
-        sleep(600);
-        System.out.println("  work         - æ‰“å·¥èµšé’±");
-        sleep(400);
-        System.out.println("\nğŸ’ é“å…·å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  use [é“å…·å] - ä½¿ç”¨æŒ‡å®šé“å…·");
-        sleep(600);
-        System.out.println("\nâ“ å…¶ä»–å‘½ä»¤:");
-        sleep(600);
-        System.out.println("  help         - æ˜¾ç¤ºæ­¤å¸®åŠ©ä¿¡æ¯");
-        sleep(400);
-        System.out.println("  quit         - é€€å‡ºæ¸¸æˆ");
-    }
+//     private void showHelp() {
+//         System.out.println("\n=== ÓÎÏ·ÃüÁîÖ¸Òı ===");
+//         sleep(800);
+//         System.out.println("??¡á? ÒÆ¶¯ÃüÁî:");
+//         sleep(600);
+//         System.out.println("  north(n)     - Ïò±±ÒÆ¶¯");
+//         sleep(400);
+//         System.out.println("  south(s)     - ÏòÄÏÒÆ¶¯");
+//         sleep(400);
+//         System.out.println("  east(e)      - Ïò¶«ÒÆ¶¯");
+//         sleep(400);
+//         System.out.println("  west(w)      - ÏòÎ÷ÒÆ¶¯");
+//         sleep(600);
+//         System.out.println("\n? ×´Ì¬ÃüÁî:");
+//         sleep(600);
+//         System.out.println("  status       - ²é¿´ÑµÁ·¼ÒºÍ±¦¿ÉÃÎ×´Ì¬");
+//         sleep(400);
+//         System.out.println("  bag          - ²é¿´±³°üÎïÆ·");
+//         sleep(400);
+//         System.out.println("  look         - ²é¿´µ±Ç°Î»ÖÃÏêÇé");
+//         sleep(400);
+//         System.out.println("  map          - ²é¿´µ±Ç°µØÍ¼");
+//         sleep(600);
+//         System.out.println("\n?? Õ½¶·ÃüÁî:");
+//         sleep(600);
+//         System.out.println("  battle       - ÓëÒ°Éú±¦¿ÉÃÎÕ½¶·£¨ÔÚÒ°ÍâÇøÓò£©");
+//         sleep(400);
+//         System.out.println("  heal         - »Ö¸´ËùÓĞ±¦¿ÉÃÎµÄHP");
+//         sleep(600);
+//         System.out.println("\n? ÉÌµêÃüÁî:");
+//         sleep(600);
+//         System.out.println("  shop         - ²é¿´ÉÌµêÉÌÆ·");
+//         sleep(400);
+//         System.out.println("  buy [µÀ¾ßÃû] - ¹ºÂòÖ¸¶¨µÀ¾ß");
+//         sleep(600);
+//         System.out.println("\n? ¾­¼ÃÃüÁî:");
+//         sleep(600);
+//         System.out.println("  work         - ´ò¹¤×¬Ç®");
+//         sleep(400);
+//         System.out.println("\n? µÀ¾ßÃüÁî:");
+//         sleep(600);
+//         System.out.println("  use [µÀ¾ßÃû] - Ê¹ÓÃÖ¸¶¨µÀ¾ß");
+//         sleep(600);
+//         System.out.println("\n? ÆäËûÃüÁî:");
+//         sleep(600);
+//         System.out.println("  help         - ÏÔÊ¾´Ë°ïÖúĞÅÏ¢");
+//         sleep(400);
+//         System.out.println("  quit         - ÍË³öÓÎÏ·");
+//     }
 
-    private void sleep(int milliseconds) {
-        try {
-            Thread.sleep(milliseconds);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-    }
+//     private void sleep(int milliseconds) {
+//         try {
+//             Thread.sleep(milliseconds);
+//         } catch (InterruptedException e) {
+//             Thread.currentThread().interrupt();
+//         }
+//     }
 
-    public static void main(String[] args) {
-        GameMain game = new GameMain();
-        game.startGame();
-    }
-}
+//     public static void main(String[] args) {
+//         GameMain game = new GameMain();
+//         game.startGame();
+//     }
+// }

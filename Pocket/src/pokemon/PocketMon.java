@@ -26,7 +26,7 @@ public class PocketMon {
         this.name = name;
         this.type = type;
         this.level = level;
-        this.skills = new ArrayList<>();
+        this.skills = new Vector<>();
         calculateStats();
         this.currentHp = this.maxHp;
         this.exp = level > 1 ? EXP_REQUIREMENTS[level - 1] : 0;
@@ -42,19 +42,19 @@ public class PocketMon {
     private void initializeSkills() {
         switch (this.type) {
             case GRASS:
-                skills.add(new Skill("ÊíûÂáª", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
-                skills.add(new Skill("Ëó§Èû≠", Type.GRASS, 45, 100, 25, Skill.SkillCategory.PHYSICAL, 3));
+                skills.add(new Skill("◊≤ª˜", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+                skills.add(new Skill("ÃŸ±ﬁ", Type.GRASS, 45, 100, 25, Skill.SkillCategory.PHYSICAL, 3));
                 break;
             case BUG:
-                skills.add(new Skill("ÊíûÂáª", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
-                skills.add(new Skill("Âêê‰∏ù", Type.BUG, 0, 95, 40, Skill.SkillCategory.STATUS, 1));
+                skills.add(new Skill("◊≤ª˜", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+                skills.add(new Skill("Õ¬Àø", Type.BUG, 0, 95, 40, Skill.SkillCategory.STATUS, 1));
                 break;
             case FLYING:
-                skills.add(new Skill("ÊíûÂáª", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
-                skills.add(new Skill("Ëµ∑È£é", Type.FLYING, 40, 100, 35, Skill.SkillCategory.SPECIAL, 1));
+                skills.add(new Skill("◊≤ª˜", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+                skills.add(new Skill("∆∑Á", Type.FLYING, 40, 100, 35, Skill.SkillCategory.SPECIAL, 1));
                 break;
             default:
-                skills.add(new Skill("ÊíûÂáª", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+                skills.add(new Skill("◊≤ª˜", Type.NORMAL, 40, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
                 break;
         }
     }
@@ -62,7 +62,7 @@ public class PocketMon {
     public void gainExp(int gainedExp) {
         if (level >= EXP_REQUIREMENTS.length) return;
         this.exp += gainedExp;
-        System.out.println(name + " Ëé∑Âæó‰∫Ü " + gainedExp + " ÁªèÈ™åÂÄºÔºÅ");
+        System.out.println(name + " ªÒµ√¡À " + gainedExp + " æ≠—È÷µ£°");
         while (level < EXP_REQUIREMENTS.length && exp >= EXP_REQUIREMENTS[level]) {
             levelUp();
         }
@@ -75,7 +75,7 @@ public class PocketMon {
         double hpRatio = (double) currentHp / oldMaxHp;
         currentHp = (int) (maxHp * hpRatio);
         if (currentHp < 1) currentHp = 1;
-        System.out.println("‚ú® " + name + " ÂçáÂà∞‰∫Ü Lv." + level + "ÔºÅ");
+        System.out.println("? " + name + " …˝µΩ¡À Lv." + level + "£°");
     }
 
     public int getExpToNextLevel() {
@@ -85,9 +85,9 @@ public class PocketMon {
 
     public String getExpInfo() {
         int expToNext = getExpToNextLevel();
-        if (expToNext == -1) return "üèÜ Â∑≤ËææÂà∞ÊúÄÈ´òÁ≠âÁ∫ß";
-        else if (expToNext == 0) return "‚ú® ÂèØ‰ª•ÂçáÁ∫ß‰∫ÜÔºÅ";
-        else return "Ë∑ùÁ¶ª‰∏ã‰∏ÄÁ∫ßËøòÈúÄ: " + expToNext + "ÁªèÈ™å";
+        if (expToNext == -1) return "? “—¥ÔµΩ◊Ó∏ﬂµ»º∂";
+        else if (expToNext == 0) return "? ø…“‘…˝º∂¡À£°";
+        else return "æ‡¿Îœ¬“ªº∂ªπ–Ë: " + expToNext + "æ≠—È";
     }
 
     public void takeDamage(int damage) {
@@ -97,7 +97,7 @@ public class PocketMon {
 
     public void heal(int amount) {
         currentHp = Math.min(currentHp + amount, maxHp);
-        System.out.println(name + " ÊÅ¢Â§ç‰∫Ü " + amount + " HPÔºÅ");
+        System.out.println(name + " ª÷∏¥¡À " + amount + " HP£°");
     }
 
     public void fullHeal() {
@@ -113,7 +113,7 @@ public class PocketMon {
     }
 
     public String getBattleStatus() {
-        return String.format("%s Lv.%d ‚ù§Ô∏è%d/%d", name, level, currentHp, maxHp);
+        return String.format("%s Lv.%d ??%d/%d", name, level, currentHp, maxHp);
     }
 
     public String getName() { return name; }

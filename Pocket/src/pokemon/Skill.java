@@ -1,6 +1,5 @@
 package pokemon;
 
-
 public class Skill {
     private String name;
     private PocketMon.Type type;
@@ -11,9 +10,9 @@ public class Skill {
     private SkillCategory category;
 
     public enum SkillCategory {
-        PHYSICAL("ç‰©ç†"),
-        SPECIAL("ç‰¹æ®Š"),
-        STATUS("å˜åŒ–");
+        PHYSICAL("ÎïÀí"),
+        SPECIAL("ÌØÊâ"),
+        STATUS("±ä»¯");
 
         private final String chineseName;
 
@@ -51,8 +50,9 @@ public class Skill {
         if (power == 0 || category == SkillCategory.STATUS) return 0;
 
         double effectiveness = calculateTypeEffectiveness(defender.getType());
+        
+        // ? É¾³ıÁË System.out.println£¬·ÀÖ¹·şÎñÆ÷Ë¢ÆÁ
         if (effectiveness == 0) {
-            System.out.println("æ²¡æœ‰æ•ˆæœ...");
             return 0;
         }
 
@@ -60,13 +60,11 @@ public class Skill {
         damage = (int) (damage * effectiveness);
         damage = Math.max(1, damage);
 
-        if (effectiveness > 1) System.out.println("æ•ˆæœæ‹”ç¾¤ï¼");
-        else if (effectiveness < 1) System.out.println("æ•ˆæœä¸ç†æƒ³...");
-
         return damage;
     }
 
     private double calculateTypeEffectiveness(PocketMon.Type defenderType) {
+        // ¼òµ¥µÄÊôĞÔ¿ËÖÆ±í
         switch (this.type) {
             case GRASS:
                 if (defenderType == PocketMon.Type.WATER) return 2.0;
@@ -83,9 +81,17 @@ public class Skill {
             case FLYING:
                 if (defenderType == PocketMon.Type.BUG) return 2.0;
                 break;
+            case ELECTRIC:
+                if (defenderType == PocketMon.Type.FLYING) return 2.0;
+                if (defenderType == PocketMon.Type.GRASS) return 0.5;
+                break;
             case BUG:
                 if (defenderType == PocketMon.Type.GRASS) return 2.0;
                 break;
+            case NORMAL:
+                return 1.0;
+            default:
+                return 1.0;
         }
         return 1.0;
     }

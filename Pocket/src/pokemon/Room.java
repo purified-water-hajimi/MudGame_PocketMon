@@ -3,63 +3,84 @@ package pokemon;
 import java.util.*;
 
 public class Room {
-    private String name;
-    private String description;
-    private Map<String, String> exits;
-    private List<WildPokemonInfo> wildPokemons;
-    private Random random;
+    private String id;           // ·¿¼äÎ¨Ò»ID (Èç "home")
+    private String name;         // ·¿¼äÏÔÊ¾Ãû (Èç "ÕæĞÂÕò")
+    private String description;  // ÃèÊö
+    private Map<String, String> exits; // ³ö¿Ú·½Ïò -> ·¿¼äID
+    
+    // ´æ·ÅÍæ¼ÒÁĞ±í (Áª»úÓÃ)
+    private Vector<Player> playersInRoom = new Vector<>();
+    // ´æ·ÅÒ°Éú±¦¿ÉÃÎ (Õ½¶·ÓÃ)
+    private List<PocketMon> wildPokemons = new ArrayList<>();
 
-    private static class WildPokemonInfo {
-        PocketMon pokemon;
-        WildPokemonInfo(PocketMon pokemon, double probability) {
-            this.pokemon = pokemon;
-        }
-    }
-
-    public Room(String roomId, String name, String description) {
+    public Room(String id, String name, String description) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.exits = new HashMap<>();
-        this.wildPokemons = new ArrayList<>();
-        this.random = new Random();
     }
 
-    public void addExit(String direction, String targetRoomId) {
-        exits.put(direction.toLowerCase(), targetRoomId);
+    // === ÕâÀïµÄ getId ¾ÍÊÇÄã±¨´íÈ±ÉÙµÄÄÇ¸ö£¡ ===
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setExits(String direction, String neighbor) {
+        exits.put(direction, neighbor);
+    }
+
+    public void addExit(String direction, String neighborId) {
+        exits.put(direction, neighborId);
     }
 
     public String getExit(String direction) {
-        return exits.get(direction.toLowerCase());
+        return exits.get(direction);
+    }
+    
+    public String getDescription() {
+        return description;
     }
 
-    public void addWildPokemon(PocketMon pokemon, double probability) {
-        wildPokemons.add(new WildPokemonInfo(pokemon, probability));
+    public String getFullDescription() {
+        return "Î»ÖÃ: " + name + "\n" + description;
+    }
+
+    public String getAvailableExits() {
+        return exits.keySet().toString();
+    }
+
+    // === Áª»ú¹¦ÄÜ: Íæ¼Ò½ø³ö ===
+    public void addPlayer(Player p) {
+        playersInRoom.add(p);
+    }
+
+    public void removePlayer(Player p) {
+        playersInRoom.remove(p);
+    }
+
+    public String getPlayerNames(Player observer) {
+        StringBuilder sb = new StringBuilder();
+        for (Player p : playersInRoom) {
+            if (p != observer) {
+                sb.append(p.getName()).append(" ");
+            }
+        }
+        return sb.length() == 0 ? "Éí±ßÃ»ÓĞÈË¡£" : "Éí±ßµÄÍæ¼Ò: " + sb.toString();
+    }
+
+    // === Õ½¶·¹¦ÄÜ: Ò°Éú±¦¿ÉÃÎ ===
+    public void addWildPokemon(PocketMon pm, double chance) {
+        // ¼ò»¯°æ£ºÖ±½Ó´æ½øÈ¥£¬¼¸ÂÊÂß¼­ÔÚ ClientHandler ´¦Àí
+        wildPokemons.add(pm);
     }
 
     public PocketMon getRandomWildPokemon() {
         if (wildPokemons.isEmpty()) return null;
-        int index = random.nextInt(wildPokemons.size());
-        WildPokemonInfo info = wildPokemons.get(index);
-        return new PocketMon(info.pokemon.getName(), info.pokemon.getType(), info.pokemon.getLevel());
+        // Ëæ»ú·µ»ØÒ»Ö»
+        return wildPokemons.get(new Random().nextInt(wildPokemons.size()));
     }
-
-    public List<String> getAvailableExits() {
-        return new ArrayList<>(exits.keySet());
-    }
-
-    public String getFullDescription() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("ã€").append(name).append("ã€‘\n");
-        sb.append(description).append("\n\n");
-
-        if (exits.isEmpty()) sb.append("è¿™é‡Œæ²¡æœ‰æ˜æ˜¾çš„å‡ºå£ã€‚");
-        else sb.append("å‡ºå£: ").append(String.join("ã€", getAvailableExits()));
-
-        if (!wildPokemons.isEmpty()) sb.append("\n\nğŸ¯ è¿™é‡Œæœ‰é‡ç”Ÿå®å¯æ¢¦ï¼ä½¿ç”¨ 'battle' å‘½ä»¤å¼€å§‹æˆ˜æ–—ã€‚");
-        else sb.append("\n\nğŸ  è¿™é‡Œå¾ˆå®‰å…¨ï¼Œæ²¡æœ‰é‡ç”Ÿå®å¯æ¢¦ã€‚");
-
-        return sb.toString();
-    }
-
-    public String getName() { return name; }
 }

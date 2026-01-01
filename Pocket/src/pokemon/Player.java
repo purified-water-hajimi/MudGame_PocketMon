@@ -10,115 +10,127 @@ public class Player {
 
     public Player(String name) {
         this.name = name;
-        this.team = new ArrayList<>();
+        // Ê¹ÓÃ Vector È·±£Ïß³Ì°²È«
+        this.team = new Vector<>();
         this.bag = new HashMap<>();
         this.money = 1000;
         initializePlayer();
     }
 
     private void initializePlayer() {
-        bag.put("ä¼¤è¯", 2);
-        bag.put("å¥½ä¼¤è¯", 1);
-        bag.put("ç²¾çµçƒ", 5);
-        bag.put("ç»éªŒç³–æœ", 1);
-        bag.put("æ”»å‡»å¼ºåŒ–å‰‚", 1);
-        bag.put("é˜²å¾¡å¼ºåŒ–å‰‚", 1);
+        bag.put("ÉËÒ©", 2);
+        bag.put("ºÃÉËÒ©", 1);
+        bag.put("¾«ÁéÇò", 5);
+        bag.put("¾­ÑéÌÇ¹û", 1);
+        bag.put("¹¥»÷Ç¿»¯¼Á", 1);
+        bag.put("·ÀÓùÇ¿»¯¼Á", 1);
     }
 
-    public void showStatus() {
-        System.out.println("=== è®­ç»ƒå®¶ " + name + " ===");
-        System.out.println("é‡‘é’±: " + money + "å…ƒ");
-        System.out.println("\né˜Ÿä¼:");
-        for (int i = 0; i < team.size(); i++) {
-            PocketMon pm = team.get(i);
-            System.out.println((i + 1) + ". " + pm.getBattleStatus());
-            System.out.println("   " + pm.getExpInfo());
+    // ? Ô­À´ÊÇ showStatus (Ö±½Ó´òÓ¡)
+    // ? ÏÖÔÚÊÇ getStatus (·µ»Ø×Ö·û´®¸ø ClientHandler ´òÓ¡)
+    public String getStatus() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== ÑµÁ·¼Ò " + name + " ===\n");
+        sb.append("½ğÇ®: " + money + "Ôª\n");
+        sb.append("¶ÓÎé:\n");
+        if (team.isEmpty()) {
+            sb.append(" (ÔİÎŞ±¦¿ÉÃÎ)\n");
+        } else {
+            for (int i = 0; i < team.size(); i++) {
+                PocketMon pm = team.get(i);
+                sb.append((i + 1) + ". " + pm.getBattleStatus() + "\n");
+                sb.append("   " + pm.getExpInfo() + "\n");
+            }
         }
+        return sb.toString();
     }
 
-    public void showBag() {
-        System.out.println("=== èƒŒåŒ… ===");
+    // ? ¸ÄÎª·µ»Ø×Ö·û´®
+    public String getBagContent() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== ±³°ü ===\n");
         if (bag.isEmpty()) {
-            System.out.println("èƒŒåŒ…æ˜¯ç©ºçš„ã€‚");
+            sb.append("±³°üÊÇ¿ÕµÄ¡£\n");
         } else {
             int totalItems = 0;
             for (Map.Entry<String, Integer> entry : bag.entrySet()) {
-                System.out.println(entry.getKey() + " x" + entry.getValue());
+                sb.append(entry.getKey() + " x" + entry.getValue() + "\n");
                 totalItems += entry.getValue();
             }
-            System.out.println("\næ€»è®¡: " + totalItems + "ä¸ªé“å…·");
+            sb.append("\n×Ü¼Æ: " + totalItems + "¸öµÀ¾ß\n");
         }
-        System.out.println("é‡‘é’±: " + money + "å…ƒ");
+        sb.append("½ğÇ®: " + money + "Ôª");
+        return sb.toString();
     }
 
-    public void useItem(String itemName) {
+    // ? ¸ÄÎª·µ»Ø²Ù×÷½á¹û×Ö·û´®
+    public String useItem(String itemName) {
         if (!bag.containsKey(itemName) || bag.get(itemName) <= 0) {
-            System.out.println("ä½ æ²¡æœ‰" + itemName + "ã€‚");
-            return;
+            return "ÄãÃ»ÓĞ" + itemName + "¡£";
         }
 
         if (team.isEmpty()) {
-            System.out.println("ä½ æ²¡æœ‰å¯ç”¨çš„å®å¯æ¢¦ï¼");
-            return;
+            return "ÄãÃ»ÓĞ¿ÉÓÃµÄ±¦¿ÉÃÎ£¡";
         }
 
         PocketMon targetPokemon = team.get(0);
+        String resultMsg = "";
 
         switch (itemName) {
-            case "ä¼¤è¯":
+            case "ÉËÒ©":
                 targetPokemon.heal(20);
                 bag.put(itemName, bag.get(itemName) - 1);
-                System.out.println("ä½¿ç”¨äº†ä¼¤è¯ï¼æ¢å¤äº†20HP");
+                resultMsg = "Ê¹ÓÃÁËÉËÒ©£¡»Ö¸´ÁË20HP";
                 break;
-            case "å¥½ä¼¤è¯":
+            case "ºÃÉËÒ©":
                 targetPokemon.heal(50);
                 bag.put(itemName, bag.get(itemName) - 1);
-                System.out.println("ä½¿ç”¨äº†å¥½ä¼¤è¯ï¼æ¢å¤äº†50HP");
+                resultMsg = "Ê¹ÓÃÁËºÃÉËÒ©£¡»Ö¸´ÁË50HP";
                 break;
-            case "ç»éªŒç³–æœ":
+            case "¾­ÑéÌÇ¹û":
                 targetPokemon.gainExp(100);
                 bag.put(itemName, bag.get(itemName) - 1);
-                System.out.println("ä½¿ç”¨äº†ç»éªŒç³–æœï¼è·å¾—äº†100ç»éªŒå€¼");
+                resultMsg = "Ê¹ÓÃÁË¾­ÑéÌÇ¹û£¡»ñµÃÁË100¾­ÑéÖµ";
                 break;
-            case "æ”»å‡»å¼ºåŒ–å‰‚":
-                System.out.println("ä½¿ç”¨äº†æ”»å‡»å¼ºåŒ–å‰‚ï¼æ”»å‡»åŠ›æš‚æ—¶æå‡");
+            case "¹¥»÷Ç¿»¯¼Á":
+                // ÕâÀïÂß¼­ÉÔÎ¢ÓĞµãÎÊÌâ£¬Ç¿»¯¼ÁÍ¨³£Õ½¶·ÖĞÓÃ£¬Æ½Ê±ÓÃÃ»Ğ§¹û
+                // µ«ÎªÁË²»±¨´í£¬ÏÈÕâÑùĞ´
+                resultMsg = "Ê¹ÓÃÁË¹¥»÷Ç¿»¯¼Á£¡(ĞèÒªÔÚÕ½¶·ÖĞÊ¹ÓÃ²ÅÓĞĞ§)";
                 bag.put(itemName, bag.get(itemName) - 1);
                 break;
             default:
-                System.out.println("æ— æ³•ä½¿ç”¨ " + itemName);
-                return;
+                return "ÎŞ·¨ÔÚ·ÇÕ½¶·×´Ì¬Ê¹ÓÃ " + itemName;
         }
 
         if (bag.get(itemName) <= 0) bag.remove(itemName);
+        return resultMsg;
     }
 
-    public void healTeam() {
+    public String healTeam() {
         for (PocketMon pm : team) pm.fullHeal();
-        System.out.println("æ‰€æœ‰å®å¯æ¢¦å·²å®Œå…¨æ¢å¤ï¼");
+        return "ËùÓĞ±¦¿ÉÃÎÒÑÍêÈ«»Ö¸´£¡";
     }
 
-    public boolean buyItem(String itemName, int price) {
+    // ? ¹ºÂòÒ²·µ»Ø×Ö·û´®¸æÖª³É¹¦Óë·ñ
+    public String buyItem(String itemName, int price) {
         if (money < price) {
-            System.out.println("é‡‘é’±ä¸è¶³ï¼éœ€è¦" + price + "å…ƒï¼Œä½†ä½ åªæœ‰" + money + "å…ƒã€‚");
-            return false;
+            return "½ğÇ®²»×ã£¡ĞèÒª" + price + "Ôª£¬µ«ÄãÖ»ÓĞ" + money + "Ôª¡£";
         }
         money -= price;
         bag.put(itemName, bag.getOrDefault(itemName, 0) + 1);
-        System.out.println("è´­ä¹°äº† " + itemName + "ï¼èŠ±è´¹" + price + "å…ƒ");
-        System.out.println("å‰©ä½™é‡‘é’±: " + money + "å…ƒ");
-        return true;
+        return "¹ºÂòÁË " + itemName + "£¡»¨·Ñ" + price + "Ôª\nÊ£Óà½ğÇ®: " + money + "Ôª";
     }
 
-    public void work() {
+    // ? ´ò¹¤Ò²·µ»Ø½á¹û
+    public String work() {
         int earnings = 200 + (int)(Math.random() * 100);
         money += earnings;
-        System.out.println("æ‰“å·¥å®Œæˆï¼èµšå–äº†" + earnings + "å…ƒ");
-        System.out.println("å½“å‰é‡‘é’±: " + money + "å…ƒ");
+        return "´ò¹¤Íê³É£¡×¬È¡ÁË" + earnings + "Ôª\nµ±Ç°½ğÇ®: " + money + "Ôª";
     }
 
     public void gainMoney(int amount) {
         money += amount;
-        System.out.println("è·å¾—äº† " + amount + "å…ƒï¼");
+        // Õâ¸öÍ¨³£ÊÇÄÚ²¿µ÷ÓÃ£¬²»ĞèÒª·µ»Ø×Ö·û´®£¬»òÕß battle ÏµÍ³»á´¦Àí´òÓ¡
     }
 
     public String getName() { return name; }

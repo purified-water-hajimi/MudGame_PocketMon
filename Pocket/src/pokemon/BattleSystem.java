@@ -1,11 +1,17 @@
 package pokemon;
 
-import java.util.Scanner;
+import java.io.*;
 
 public class BattleSystem {
     private Player player;
     private PocketMon wildPokemon;
-    private Scanner scanner;
+    // ? È¥µô Scanner
+    // private Scanner scanner; 
+    
+    // ? ĞÂÔöÍøÂçÊäÈëÊä³öÁ÷
+    private PrintWriter out;
+    private BufferedReader in;
+    
     private boolean battleActive;
 
     private static final double BASE_DODGE_CHANCE = 0.15;
@@ -13,10 +19,12 @@ public class BattleSystem {
     private static final double CRITICAL_MULTIPLIER = 1.5;
     private static final double ENEMY_HEAL_CHANCE = 0.20;
 
-    public BattleSystem(Player player, PocketMon wildPokemon) {
+    // ? ¹¹Ôìº¯ÊıĞŞ¸Ä£º½ÓÊÕÍøÂçÁ÷
+    public BattleSystem(Player player, PocketMon wildPokemon, PrintWriter out, BufferedReader in) {
         this.player = player;
         this.wildPokemon = wildPokemon;
-        this.scanner = new Scanner(System.in);
+        this.out = out; // °ó¶¨Êä³ö
+        this.in = in;   // °ó¶¨ÊäÈë
         this.battleActive = true;
     }
 
@@ -27,36 +35,47 @@ public class BattleSystem {
             Thread.currentThread().interrupt();
         }
     }
+    
+    // ¸¨Öú·¢ËÍÏûÏ¢·½·¨
+    private void send(String msg) {
+        out.println(msg);
+    }
 
     public void startBattle() {
-        System.out.println("\n=== é‡ç”Ÿå®å¯æ¢¦å‡ºç°ï¼ ===");
+        send("\n=== Ò°Éú±¦¿ÉÃÎ³öÏÖ£¡ ===");
         sleep(1500);
-        System.out.println("é‡ç”Ÿçš„ " + wildPokemon.getBattleStatus() + " å‡ºç°äº†ï¼");
+        send("Ò°ÉúµÄ " + wildPokemon.getBattleStatus() + " ³öÏÖÁË£¡");
         sleep(1500);
 
         PocketMon playerPokemon = player.getFirstPokemon();
         if (playerPokemon == null) {
-            System.out.println("ä½ æ²¡æœ‰å¯ç”¨çš„å®å¯æ¢¦ï¼");
+            send("ÄãÃ»ÓĞ¿ÉÓÃµÄ±¦¿ÉÃÎ£¡");
             return;
         }
 
-        System.out.println("å»å§ï¼ " + playerPokemon.getBattleStatus());
+        send("È¥°É£¡ " + playerPokemon.getBattleStatus());
         sleep(1500);
 
-        // æˆ˜æ–—å¾ªç¯
+        // Õ½¶·Ñ­»·
         while (battleActive && !playerPokemon.isFainted() && !wildPokemon.isFainted()) {
             showBattleStatus(playerPokemon);
 
-            // ç©å®¶å›åˆ
-            playerTurn(playerPokemon);
+            // Íæ¼Ò»ØºÏ
+            try {
+                playerTurn(playerPokemon);
+            } catch (IOException e) {
+                e.printStackTrace();
+                break; // ÍøÂç¶Ï¿ª£¬½áÊøÕ½¶·
+            }
+            
             if (!battleActive || playerPokemon.isFainted() || wildPokemon.isFainted()) break;
 
-            // å¯¹æ‰‹å›åˆ
+            // ¶ÔÊÖ»ØºÏ
             enemyTurn(playerPokemon);
             if (playerPokemon.isFainted() || wildPokemon.isFainted()) break;
         }
 
-        // æˆ˜æ–—ç»“æŸå¤„ç†
+        // Õ½¶·½áÊø´¦Àí
         if (wildPokemon.isFainted()) {
             battleWin(playerPokemon);
         } else if (playerPokemon.isFainted()) {
@@ -64,14 +83,18 @@ public class BattleSystem {
         }
     }
 
-    private void playerTurn(PocketMon playerPokemon) {
-        System.out.println("\n--- ä½ çš„å›åˆ ---");
-        System.out.println("é€‰æ‹©è¡ŒåŠ¨:");
-        System.out.println("1. æ”»å‡»");
-        System.out.println("2. ä½¿ç”¨é“å…·");
-        System.out.println("3. é€ƒè·‘");
-        System.out.print("> ");
-        String choice = scanner.nextLine().trim();
+    private void playerTurn(PocketMon playerPokemon) throws IOException {
+        send("\n--- ÄãµÄ»ØºÏ ---");
+        send("Ñ¡ÔñĞĞ¶¯:");
+        send("1. ¹¥»÷");
+        send("2. Ê¹ÓÃµÀ¾ß");
+        send("3. ÌÓÅÜ");
+        // send("> "); // Telnet ²»ĞèÒªÕâ¸öÌáÊ¾·û£¬»òÕß¿ÉÒÔÓÃ out.print
+        
+        // ? Ìæ»» Scanner ¶ÁÈ¡
+        String choice = in.readLine(); 
+        if (choice == null) return;
+        choice = choice.trim();
 
         switch (choice) {
             case "1":
@@ -82,69 +105,73 @@ public class BattleSystem {
                 break;
             case "3":
                 if (attemptEscape()) {
-                    System.out.println("æˆåŠŸé€ƒè„±äº†ï¼");
+                    send("³É¹¦ÌÓÍÑÁË£¡");
                     battleActive = false;
                     return;
                 } else {
-                    System.out.println("é€ƒè„±å¤±è´¥äº†ï¼");
+                    send("ÌÓÍÑÊ§°ÜÁË£¡");
                 }
                 break;
             default:
-                System.out.println("æ— æ•ˆé€‰æ‹©ï¼");
+                send("ÎŞĞ§Ñ¡Ôñ£¡");
                 playerTurn(playerPokemon);
                 break;
         }
     }
 
-    private void attackMenu(PocketMon playerPokemon) {
-        System.out.println("\né€‰æ‹©æŠ€èƒ½:");
+    private void attackMenu(PocketMon playerPokemon) throws IOException {
+        send("\nÑ¡Ôñ¼¼ÄÜ:");
         for (int i = 0; i < playerPokemon.getSkills().size(); i++) {
             Skill skill = playerPokemon.getSkill(i);
-            System.out.println((i + 1) + ". " + skill.getName() + " (PP:" + skill.getPp() + "/" + skill.getMaxPp() + ")");
+            send((i + 1) + ". " + skill.getName() + " (PP:" + skill.getPp() + "/" + skill.getMaxPp() + ")");
         }
 
-        System.out.print("> ");
         try {
-            int choice = Integer.parseInt(scanner.nextLine().trim()) - 1;
+            String input = in.readLine();
+            if (input == null) return;
+            
+            int choice = Integer.parseInt(input.trim()) - 1;
             if (choice >= 0 && choice < playerPokemon.getSkills().size()) {
                 Skill skill = playerPokemon.getSkill(choice);
                 if (skill.use()) {
                     executeAttack(playerPokemon, skill, wildPokemon, playerPokemon.getName());
                 } else {
-                    System.out.println(skill.getName() + "çš„PPä¸è¶³ï¼");
+                    send(skill.getName() + "µÄPP²»×ã£¡");
                     attackMenu(playerPokemon);
                 }
             } else {
-                System.out.println("æ— æ•ˆé€‰æ‹©ï¼");
+                send("ÎŞĞ§Ñ¡Ôñ£¡");
                 attackMenu(playerPokemon);
             }
         } catch (NumberFormatException e) {
-            System.out.println("è¯·è¾“å…¥æ•°å­—ï¼");
+            send("ÇëÊäÈëÊı×Ö£¡");
             attackMenu(playerPokemon);
         }
     }
 
-    private void useItemMenu(PocketMon playerPokemon) {
-        System.out.println("\n=== æˆ˜æ–—é“å…· ===");
+    private void useItemMenu(PocketMon playerPokemon) throws IOException {
+        send("\n=== Õ½¶·µÀ¾ß ===");
 
         boolean hasBattleItems = false;
         for (String itemName : player.getBag().keySet()) {
             int quantity = player.getBag().get(itemName);
             if (quantity > 0 && isBattleItem(itemName)) {
-                System.out.println("- " + itemName + " x" + quantity);
+                send("- " + itemName + " x" + quantity);
                 hasBattleItems = true;
             }
         }
 
         if (!hasBattleItems) {
-            System.out.println("æ²¡æœ‰å¯ç”¨çš„æˆ˜æ–—é“å…·ï¼");
+            send("Ã»ÓĞ¿ÉÓÃµÄÕ½¶·µÀ¾ß£¡");
             sleep(1000);
             playerTurn(playerPokemon);
             return;
         }
 
-        System.out.print("\nè¾“å…¥è¦ä½¿ç”¨çš„é“å…·åï¼ˆæˆ–è¾“å…¥ 'back' è¿”å›ï¼‰: ");
-        String itemName = scanner.nextLine().trim();
+        send("\nÊäÈëÒªÊ¹ÓÃµÄµÀ¾ßÃû£¨»òÊäÈë 'back' ·µ»Ø£©: ");
+        String itemName = in.readLine();
+        if (itemName == null) return;
+        itemName = itemName.trim();
 
         if (itemName.equalsIgnoreCase("back")) {
             playerTurn(playerPokemon);
@@ -154,39 +181,35 @@ public class BattleSystem {
         if (player.getBag().containsKey(itemName) && player.getBag().get(itemName) > 0) {
             useBattleItem(itemName, playerPokemon);
         } else {
-            System.out.println("ä½ æ²¡æœ‰è¿™ä¸ªé“å…·æˆ–é“å…·å·²ç”¨å®Œï¼");
+            send("ÄãÃ»ÓĞÕâ¸öµÀ¾ß»òµÀ¾ßÒÑÓÃÍê£¡");
             sleep(1000);
             useItemMenu(playerPokemon);
         }
     }
 
     private boolean isBattleItem(String itemName) {
-        return itemName.equals("ä¼¤è¯") || itemName.equals("å¥½ä¼¤è¯") ||
-                itemName.equals("æ”»å‡»å¼ºåŒ–å‰‚") || itemName.equals("é˜²å¾¡å¼ºåŒ–å‰‚");
+        return itemName.equals("ÉËÒ©") || itemName.equals("ºÃÉËÒ©") ||
+                itemName.equals("¹¥»÷Ç¿»¯¼Á") || itemName.equals("·ÀÓùÇ¿»¯¼Á");
     }
 
     private void useBattleItem(String itemName, PocketMon targetPokemon) {
         switch (itemName) {
-            case "ä¼¤è¯":
+            case "ÉËÒ©":
                 targetPokemon.heal(20);
                 player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                System.out.println("ä½¿ç”¨äº†ä¼¤è¯ï¼æ¢å¤äº†20HP");
+                send("Ê¹ÓÃÁËÉËÒ©£¡»Ö¸´ÁË20HP");
                 break;
-            case "å¥½ä¼¤è¯":
+            case "ºÃÉËÒ©":
                 targetPokemon.heal(50);
                 player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                System.out.println("ä½¿ç”¨äº†å¥½ä¼¤è¯ï¼æ¢å¤äº†50HP");
+                send("Ê¹ÓÃÁËºÃÉËÒ©£¡»Ö¸´ÁË50HP");
                 break;
-            case "æ”»å‡»å¼ºåŒ–å‰‚":
-                System.out.println("ä½¿ç”¨äº†æ”»å‡»å¼ºåŒ–å‰‚ï¼æ”»å‡»åŠ›æš‚æ—¶æå‡äº†ï¼");
-                player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                break;
-            case "é˜²å¾¡å¼ºåŒ–å‰‚":
-                System.out.println("ä½¿ç”¨äº†é˜²å¾¡å¼ºåŒ–å‰‚ï¼é˜²å¾¡åŠ›æš‚æ—¶æå‡äº†ï¼");
+            case "¹¥»÷Ç¿»¯¼Á":
+                send("Ê¹ÓÃÁË¹¥»÷Ç¿»¯¼Á£¡¹¥»÷Á¦ÔİÊ±ÌáÉıÁË£¡");
                 player.getBag().put(itemName, player.getBag().get(itemName) - 1);
                 break;
             default:
-                System.out.println("è¿™ä¸ªé“å…·ä¸èƒ½åœ¨æˆ˜æ–—ä¸­ä½¿ç”¨ï¼");
+                send("Õâ¸öµÀ¾ß²»ÄÜÔÚÕ½¶·ÖĞÊ¹ÓÃ£¡");
                 return;
         }
 
@@ -198,30 +221,30 @@ public class BattleSystem {
     }
 
     private void enemyTurn(PocketMon playerPokemon) {
-        System.out.println("\n--- å¯¹æ‰‹çš„å›åˆ ---");
+        send("\n--- ¶ÔÊÖµÄ»ØºÏ ---");
         sleep(1000);
 
-        // é‡ç”Ÿå®å¯æ¢¦æœ‰å‡ ç‡ä½¿ç”¨æ²»ç–—
+        // Ò°Éú±¦¿ÉÃÎÓĞ¼¸ÂÊÊ¹ÓÃÖÎÁÆ
         if (Math.random() < ENEMY_HEAL_CHANCE && wildPokemon.getCurrentHp() < wildPokemon.getMaxHp() / 2) {
-            System.out.println("é‡ç”Ÿ" + wildPokemon.getName() + "ä½¿ç”¨äº†è‡ªæˆ‘å†ç”Ÿï¼");
+            send("Ò°Éú" + wildPokemon.getName() + "Ê¹ÓÃÁË×ÔÎÒÔÙÉú£¡");
             sleep(1000);
             int healAmount = wildPokemon.getMaxHp() / 3;
             wildPokemon.heal(healAmount);
-            System.out.println("é‡ç”Ÿ" + wildPokemon.getName() + "æ¢å¤äº†" + healAmount + "HPï¼");
+            send("Ò°Éú" + wildPokemon.getName() + "»Ö¸´ÁË" + healAmount + "HP£¡");
             sleep(1500);
             return;
         }
 
         Skill enemySkill = selectEnemySkill();
         if (enemySkill != null && enemySkill.use()) {
-            System.out.println("é‡ç”Ÿ" + wildPokemon.getName() + "ä½¿ç”¨äº† " + enemySkill.getName() + "ï¼");
+            send("Ò°Éú" + wildPokemon.getName() + "Ê¹ÓÃÁË " + enemySkill.getName() + "£¡");
             sleep(1000);
-            executeAttack(wildPokemon, enemySkill, playerPokemon, "é‡ç”Ÿ" + wildPokemon.getName());
+            executeAttack(wildPokemon, enemySkill, playerPokemon, "Ò°Éú" + wildPokemon.getName());
         } else {
-            // ä½¿ç”¨åŸºç¡€æ”»å‡»
-            System.out.println("é‡ç”Ÿ" + wildPokemon.getName() + "ä½¿ç”¨äº† æ’å‡»ï¼");
+            // Ê¹ÓÃ»ù´¡¹¥»÷
+            send("Ò°Éú" + wildPokemon.getName() + "Ê¹ÓÃÁË ×²»÷£¡");
             sleep(1000);
-            executeBasicAttack(wildPokemon, playerPokemon, "é‡ç”Ÿ" + wildPokemon.getName());
+            executeBasicAttack(wildPokemon, playerPokemon, "Ò°Éú" + wildPokemon.getName());
         }
     }
 
@@ -239,7 +262,7 @@ public class BattleSystem {
         }
 
         if (!skill.checkHit()) {
-            System.out.println(attackerName + "çš„æŠ€èƒ½æ²¡æœ‰å‘½ä¸­ï¼");
+            send(attackerName + "µÄ¼¼ÄÜÃ»ÓĞÃüÖĞ£¡");
             sleep(1200);
             return;
         }
@@ -247,7 +270,7 @@ public class BattleSystem {
         int damage = calculateDamage(attacker, skill, defender);
         if (damage > 0) {
             defender.takeDamage(damage);
-            System.out.println(attackerName + " å¯¹ " + defender.getName() + " é€ æˆäº† " + damage + " ç‚¹ä¼¤å®³ï¼");
+            send(attackerName + " ¶Ô " + defender.getName() + " Ôì³ÉÁË " + damage + " µãÉËº¦£¡");
             sleep(1500);
         }
     }
@@ -261,13 +284,13 @@ public class BattleSystem {
         int damage = applyCriticalHit(baseDamage);
 
         defender.takeDamage(damage);
-        System.out.println(attackerName + " å¯¹ " + defender.getName() + " é€ æˆäº† " + damage + " ç‚¹ä¼¤å®³ï¼");
+        send(attackerName + " ¶Ô " + defender.getName() + " Ôì³ÉÁË " + damage + " µãÉËº¦£¡");
         sleep(1500);
     }
 
     private boolean checkDodge(String defenderName) {
         if (Math.random() < BASE_DODGE_CHANCE) {
-            System.out.println(defenderName + " æˆåŠŸé—ªé¿äº†æ”»å‡»ï¼");
+            send(defenderName + " ³É¹¦ÉÁ±ÜÁË¹¥»÷£¡");
             sleep(1200);
             return true;
         }
@@ -285,7 +308,7 @@ public class BattleSystem {
 
     private int applyCriticalHit(int baseDamage) {
         if (Math.random() < BASE_CRITICAL_CHANCE) {
-            System.out.println("ğŸ’¥ ä¼šå¿ƒä¸€å‡»ï¼");
+            send("? »áĞÄÒ»»÷£¡");
             sleep(800);
             return (int)(baseDamage * CRITICAL_MULTIPLIER);
         }
@@ -297,7 +320,7 @@ public class BattleSystem {
     }
 
     private void battleWin(PocketMon playerPokemon) {
-        System.out.println("\nğŸ‰ èƒœåˆ©ï¼é‡ç”Ÿ" + wildPokemon.getName() + "å€’ä¸‹äº†ï¼");
+        send("\n? Ê¤Àû£¡Ò°Éú" + wildPokemon.getName() + "µ¹ÏÂÁË£¡");
         sleep(1500);
 
         int expGain = wildPokemon.getLevel() * 10;
@@ -307,12 +330,12 @@ public class BattleSystem {
         player.gainMoney(wildPokemon.getLevel() * 5);
         sleep(1000);
 
-        // æ˜¾ç¤ºç»éªŒä¿¡æ¯
+        // ÏÔÊ¾¾­ÑéĞÅÏ¢
         int expToNext = playerPokemon.getExpToNextLevel();
         if (expToNext > 0) {
-            System.out.println("ğŸ“Š " + playerPokemon.getName() + " è·ç¦»ä¸‹ä¸€çº§è¿˜éœ€: " + expToNext + "ç»éªŒ");
+            send("? " + playerPokemon.getName() + " ¾àÀëÏÂÒ»¼¶»¹Ğè: " + expToNext + "¾­Ñé");
         } else if (expToNext == 0) {
-            System.out.println("âœ¨ " + playerPokemon.getName() + " å¯ä»¥å‡çº§äº†ï¼");
+            send("? " + playerPokemon.getName() + " ¿ÉÒÔÉı¼¶ÁË£¡");
         }
         sleep(1000);
 
@@ -320,17 +343,17 @@ public class BattleSystem {
     }
 
     private void battleLose() {
-        System.out.println("\nğŸ’” " + player.getFirstPokemon().getName() + "å€’ä¸‹äº†ï¼");
+        send("\n? " + player.getFirstPokemon().getName() + "µ¹ÏÂÁË£¡");
         sleep(1500);
-        System.out.println("ä½ è¢«æ‰“è´¥äº†...");
+        send("Äã±»´ò°ÜÁË...");
         sleep(1500);
         battleActive = false;
     }
 
     private void showBattleStatus(PocketMon playerPokemon) {
-        System.out.println("\n====================");
-        System.out.println("é‡ç”Ÿ " + wildPokemon.getBattleStatus());
-        System.out.println("ä½ çš„ " + playerPokemon.getBattleStatus());
-        System.out.println("====================");
+        send("\n====================");
+        send("Ò°Éú " + wildPokemon.getBattleStatus());
+        send("ÄãµÄ " + playerPokemon.getBattleStatus());
+        send("====================");
     }
 }

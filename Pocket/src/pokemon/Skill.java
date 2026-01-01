@@ -10,9 +10,9 @@ public class Skill {
     private SkillCategory category;
 
     public enum SkillCategory {
-        PHYSICAL("物理"),
-        SPECIAL("特殊"),
-        STATUS("变化");
+        PHYSICAL("鐗╃悊"),
+        SPECIAL("鐗规畩"),
+        STATUS("鍙樺寲");
 
         private final String chineseName;
 

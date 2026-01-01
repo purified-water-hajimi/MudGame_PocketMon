@@ -3,97 +3,97 @@ package pokemon;
 import java.util.*;
 
 public class WorldManager {
-    // 1. ¹Ø¼üĞŞ¸Ä£º¸Ä³É static£¬¹²ÏíµØÍ¼Êı¾İ
+    // 1. å…³é”®ä¿®æ”¹ï¼šæ”¹æˆ staticï¼Œå…±äº«åœ°å›¾æ•°æ®
     private static Map<String, Room> rooms = new HashMap<>();
 
-    // 2. ¾²Ì¬³õÊ¼»¯¿é
+    // 2. é™æ€åˆå§‹åŒ–å—
     static {
         createRooms();
         setupRoomConnections();
     }
 
-    // 3. ´´½¨·¿¼ä
+    // 3. åˆ›å»ºæˆ¿é—´
     private static void createRooms() {
-        // ¼Ò
-        rooms.put("home", new Room("home", "ÕæĞÂÕò - ÄãµÄ¼Ò",
-                "ÕâÊÇÄãµÄ·¿¼ä£¬Ñô¹âÍ¸¹ı´°»§È÷½øÀ´¡£Ç½ÉÏÌù×Å±¦¿ÉÃÎº£±¨¡£\nÂ¥ÏÂÍ¨Íù east¡£"));
+        // å®¶
+        rooms.put("home", new Room("home", "çœŸæ–°é•‡ - ä½ çš„å®¶",
+                "è¿™æ˜¯ä½ çš„æˆ¿é—´ï¼Œé˜³å…‰é€è¿‡çª—æˆ·æ´’è¿›æ¥ã€‚å¢™ä¸Šè´´ç€å®å¯æ¢¦æµ·æŠ¥ã€‚\næ¥¼ä¸‹é€šå¾€ eastã€‚"));
 
-        // ÕæĞÂÕò
-        rooms.put("pallet_town", new Room("pallet_town", "ÕæĞÂÕò",
-                "Ò»¸öÄş¾²µÄĞ¡Õò¡£¿ÕÆøÖĞÃÖÂş×ÅÇà²İµÄÏãÆø¡£\nÎ÷±ßÊÇÄã¼Ò(west)£¬±±±ßÍ¨Íù1ºÅµÀÂ·(north)£¬\n¶«±ßÊÇ´óÄ¾²©Ê¿µÄÑĞ¾¿Ëù(east)£¬ÄÏ±ßÍ¨Íù³£ÇàÉ­ÁÖ(south)¡£"));
+        // çœŸæ–°é•‡
+        rooms.put("pallet_town", new Room("pallet_town", "çœŸæ–°é•‡",
+                "ä¸€ä¸ªå®é™çš„å°é•‡ã€‚ç©ºæ°”ä¸­å¼¥æ¼«ç€é’è‰çš„é¦™æ°”ã€‚\nè¥¿è¾¹æ˜¯ä½ å®¶(west)ï¼ŒåŒ—è¾¹é€šå¾€1å·é“è·¯(north)ï¼Œ\nä¸œè¾¹æ˜¯å¤§æœ¨åšå£«çš„ç ”ç©¶æ‰€(east)ï¼Œå—è¾¹é€šå¾€å¸¸é’æ£®æ—(south)ã€‚"));
 
-        // 1ºÅµÀÂ·
-        Room route1 = new Room("route1", "1ºÅµÀÂ·",
-                "Á¬½ÓÕæĞÂÕòºÍ³£ÇàÊĞµÄµÀÂ·£¬Á½ÅÔÊÇÃ¯Ê¢µÄ²İ´Ô¡£Ò°Éú±¦¿ÉÃÎÔÚÕâÀï³öÃ»¡£\nÄÏ±ß»ØÕæĞÂÕò(south)£¬±±±ßÍ¨Íù³£ÇàÊĞ(north)¡£");
-        route1.addWildPokemon(new PocketMon("ÂÌÃ«³æ", PocketMon.Type.BUG, 3), 1.0);
-        route1.addWildPokemon(new PocketMon("²¨²¨", PocketMon.Type.FLYING, 4), 1.0);
-        route1.addWildPokemon(new PocketMon("Ğ¡À­´ï", PocketMon.Type.NORMAL, 3), 1.0);
+        // 1å·é“è·¯
+        Room route1 = new Room("route1", "1å·é“è·¯",
+                "è¿æ¥çœŸæ–°é•‡å’Œå¸¸é’å¸‚çš„é“è·¯ï¼Œä¸¤æ—æ˜¯èŒ‚ç››çš„è‰ä¸›ã€‚é‡ç”Ÿå®å¯æ¢¦åœ¨è¿™é‡Œå‡ºæ²¡ã€‚\nå—è¾¹å›çœŸæ–°é•‡(south)ï¼ŒåŒ—è¾¹é€šå¾€å¸¸é’å¸‚(north)ã€‚");
+        route1.addWildPokemon(new PocketMon("ç»¿æ¯›è™«", PocketMon.Type.BUG, 3), 1.0);
+        route1.addWildPokemon(new PocketMon("æ³¢æ³¢", PocketMon.Type.FLYING, 4), 1.0);
+        route1.addWildPokemon(new PocketMon("å°æ‹‰è¾¾", PocketMon.Type.NORMAL, 3), 1.0);
         rooms.put("route1", route1);
 
-        // ´óÄ¾ÑĞ¾¿Ëù
-        rooms.put("lab", new Room("lab", "´óÄ¾ÑĞ¾¿Ëù",
-                "´óÄ¾²©Ê¿µÄÑĞ¾¿Ëù¡£¸÷ÖÖÑĞ¾¿Éè±¸°Ú·ÅÕûÆë£¬Ç½ÉÏ¹Ò×Å±¦¿ÉÃÎµÄ½âÆÊÍ¼¡£\nÎ÷±ß»ØÕæĞÂÕò(west)¡£"));
+        // å¤§æœ¨ç ”ç©¶æ‰€
+        rooms.put("lab", new Room("lab", "å¤§æœ¨ç ”ç©¶æ‰€",
+                "å¤§æœ¨åšå£«çš„ç ”ç©¶æ‰€ã€‚å„ç§ç ”ç©¶è®¾å¤‡æ‘†æ”¾æ•´é½ï¼Œå¢™ä¸ŠæŒ‚ç€å®å¯æ¢¦çš„è§£å‰–å›¾ã€‚\nè¥¿è¾¹å›çœŸæ–°é•‡(west)ã€‚"));
 
-        // ³£ÇàÉ­ÁÖ
-        Room viridianForest = new Room("viridian_forest", "³£ÇàÉ­ÁÖ",
-                "Ã¯ÃÜµÄÉ­ÁÖ£¬Ñô¹âÍ¸¹ıÊ÷Ò¶È÷ÏÂ°ß²µµÄ¹âµã¡£ÕâÀïÊÇ³æÏµ±¦¿ÉÃÎµÄÌìÌÃ¡£\n±±±ß»ØÕæĞÂÕò(north)¡£");
-        viridianForest.addWildPokemon(new PocketMon("ÂÌÃ«³æ", PocketMon.Type.BUG, 2), 1.0);
-        viridianForest.addWildPokemon(new PocketMon("¶À½Ç³æ", PocketMon.Type.BUG, 2), 1.0);
-        viridianForest.addWildPokemon(new PocketMon("²¨²¨", PocketMon.Type.FLYING, 3), 1.0);
+        // å¸¸é’æ£®æ—
+        Room viridianForest = new Room("viridian_forest", "å¸¸é’æ£®æ—",
+                "èŒ‚å¯†çš„æ£®æ—ï¼Œé˜³å…‰é€è¿‡æ ‘å¶æ´’ä¸‹æ–‘é©³çš„å…‰ç‚¹ã€‚è¿™é‡Œæ˜¯è™«ç³»å®å¯æ¢¦çš„å¤©å ‚ã€‚\nåŒ—è¾¹å›çœŸæ–°é•‡(north)ã€‚");
+        viridianForest.addWildPokemon(new PocketMon("ç»¿æ¯›è™«", PocketMon.Type.BUG, 2), 1.0);
+        viridianForest.addWildPokemon(new PocketMon("ç‹¬è§’è™«", PocketMon.Type.BUG, 2), 1.0);
+        viridianForest.addWildPokemon(new PocketMon("æ³¢æ³¢", PocketMon.Type.FLYING, 3), 1.0);
         rooms.put("viridian_forest", viridianForest);
 
-        // ³£ÇàÊĞ
-        rooms.put("viridian_city", new Room("viridian_city", "³£ÇàÊĞ",
-                "Ò»¸ö·±»ªµÄ³ÇÊĞ¡£ÕâÀïÓĞ¸÷ÖÖ±ãÀûÉèÊ©¡£\nÄÏ±ß»Ø1ºÅµÀÂ·(south)£¬¶«±ßÊÇ±¦¿ÉÃÎÖĞĞÄ(east)£¬\nÎ÷±ßÊÇÓÑºÃÉÌµê(west)£¬±±±ßÊÇ´ò¹¤³¡Ëù(north)¡£"));
+        // å¸¸é’å¸‚
+        rooms.put("viridian_city", new Room("viridian_city", "å¸¸é’å¸‚",
+                "ä¸€ä¸ªç¹åçš„åŸå¸‚ã€‚è¿™é‡Œæœ‰å„ç§ä¾¿åˆ©è®¾æ–½ã€‚\nå—è¾¹å›1å·é“è·¯(south)ï¼Œä¸œè¾¹æ˜¯å®å¯æ¢¦ä¸­å¿ƒ(east)ï¼Œ\nè¥¿è¾¹æ˜¯å‹å¥½å•†åº—(west)ï¼ŒåŒ—è¾¹æ˜¯æ‰“å·¥åœºæ‰€(north)ã€‚"));
 
-        // ±¦¿ÉÃÎÖĞĞÄ
-        rooms.put("pokemon_center", new Room("pokemon_center", "±¦¿ÉÃÎÖĞĞÄ",
-                "ÇÇÒÁĞ¡½ãÎ¢Ğ¦×ÅÕ¾ÔÚ¹ñÌ¨ºó¡£ÕâÀï¿ÉÒÔÃâ·ÑÖÎÁÆ±¦¿ÉÃÎ¡£\nÊ¹ÓÃ 'heal' ÃüÁî»Ö¸´ËùÓĞ±¦¿ÉÃÎ¡£\nÎ÷±ß»Ø³£ÇàÊĞ(west)¡£"));
+        // å®å¯æ¢¦ä¸­å¿ƒ
+        rooms.put("pokemon_center", new Room("pokemon_center", "å®å¯æ¢¦ä¸­å¿ƒ",
+                "ä¹”ä¼Šå°å§å¾®ç¬‘ç€ç«™åœ¨æŸœå°åã€‚è¿™é‡Œå¯ä»¥å…è´¹æ²»ç–—å®å¯æ¢¦ã€‚\nä½¿ç”¨ 'heal' å‘½ä»¤æ¢å¤æ‰€æœ‰å®å¯æ¢¦ã€‚\nè¥¿è¾¹å›å¸¸é’å¸‚(west)ã€‚"));
 
-        // ÓÑºÃÉÌµê
-        rooms.put("pokemart", new Room("pokemart", "ÓÑºÃÉÌµê",
-                "ÉÌµêÀï°ÚÂúÁË¸÷ÖÖ±¦¿ÉÃÎµÀ¾ß¡£\nÊ¹ÓÃ 'shop' ÃüÁî²é¿´ÉÌÆ·£¬'buy [µÀ¾ßÃû]' ¹ºÂò¡£\n¶«±ß»Ø³£ÇàÊĞ(east)¡£"));
+        // å‹å¥½å•†åº—
+        rooms.put("pokemart", new Room("pokemart", "å‹å¥½å•†åº—",
+                "å•†åº—é‡Œæ‘†æ»¡äº†å„ç§å®å¯æ¢¦é“å…·ã€‚\nä½¿ç”¨ 'shop' å‘½ä»¤æŸ¥çœ‹å•†å“ï¼Œ'buy [é“å…·å]' è´­ä¹°ã€‚\nä¸œè¾¹å›å¸¸é’å¸‚(east)ã€‚"));
 
-        // ´ò¹¤³¡Ëù
-        rooms.put("work_place", new Room("work_place", "´ò¹¤³¡Ëù",
-                "ÕâÀï¿ÉÒÔ´ò¹¤×¬Ç®¡£Ê¹ÓÃ 'work' ÃüÁî×¬È¡½ğÇ®¡£\nÄÏ±ß»Ø³£ÇàÊĞ(south)¡£"));
+        // æ‰“å·¥åœºæ‰€
+        rooms.put("work_place", new Room("work_place", "æ‰“å·¥åœºæ‰€",
+                "è¿™é‡Œå¯ä»¥æ‰“å·¥èµšé’±ã€‚ä½¿ç”¨ 'work' å‘½ä»¤èµšå–é‡‘é’±ã€‚\nå—è¾¹å›å¸¸é’å¸‚(south)ã€‚"));
     }
 
-    // 4. ÉèÖÃÁ¬½Ó
+    // 4. è®¾ç½®è¿æ¥
     private static void setupRoomConnections() {
-        // ¼Ò
+        // å®¶
         rooms.get("home").addExit("east", "pallet_town");
-        // ÕæĞÂÕò
+        // çœŸæ–°é•‡
         rooms.get("pallet_town").addExit("west", "home");
         rooms.get("pallet_town").addExit("north", "route1");
         rooms.get("pallet_town").addExit("east", "lab");
         rooms.get("pallet_town").addExit("south", "viridian_forest");
-        // 1ºÅµÀÂ·
+        // 1å·é“è·¯
         rooms.get("route1").addExit("south", "pallet_town");
         rooms.get("route1").addExit("north", "viridian_city");
-        // ÑĞ¾¿Ëù
+        // ç ”ç©¶æ‰€
         rooms.get("lab").addExit("west", "pallet_town");
-        // ³£ÇàÉ­ÁÖ
+        // å¸¸é’æ£®æ—
         rooms.get("viridian_forest").addExit("north", "pallet_town");
-        // ³£ÇàÊĞ
+        // å¸¸é’å¸‚
         rooms.get("viridian_city").addExit("south", "route1");
         rooms.get("viridian_city").addExit("east", "pokemon_center");
         rooms.get("viridian_city").addExit("west", "pokemart");
         rooms.get("viridian_city").addExit("north", "work_place");
-        // ±¦¿ÉÃÎÖĞĞÄ
+        // å®å¯æ¢¦ä¸­å¿ƒ
         rooms.get("pokemon_center").addExit("west", "viridian_city");
-        // ÓÑºÃÉÌµê
+        // å‹å¥½å•†åº—
         rooms.get("pokemart").addExit("east", "viridian_city");
-        // ´ò¹¤³¡Ëù
+        // æ‰“å·¥åœºæ‰€
         rooms.get("work_place").addExit("south", "viridian_city");
     }
 
-    // 5. »ñÈ¡³õÊ¼·¿¼ä
+    // 5. è·å–åˆå§‹æˆ¿é—´
     public static Room getStartRoom() {
         return rooms.get("home");
     }
 
-    // 6. ¸ù¾İID»ñÈ¡·¿¼ä
+    // 6. æ ¹æ®IDè·å–æˆ¿é—´
     public static Room getRoom(String id) {
         return rooms.get(id);
     }

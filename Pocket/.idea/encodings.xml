@@ -2,12 +2,13 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/pokemon/ClientHandler.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/pokemon/GameMain.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/pokemon/GameServer.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/pokemon/Item.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/pokemon/Player.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/pokemon/PocketMon.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/pokemon/Room.java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/src/pokemon/Skill.java" charset="GBK" />
-    <file url="file://$PROJECT_DIR$/src/pokemon/WorldManager.java" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/src/pokemon/Skill.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/pokemon/WorldManager.java" charset="UTF-8" />
   </component>
 </project>

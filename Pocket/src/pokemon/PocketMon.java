@@ -71,7 +71,7 @@ public class PocketMon {
         }
     }
 
-    // === 战斗相关 ===
+    // 战斗相关
     public void takeDamage(int damage) {
         this.currentHp -= damage;
         if (this.currentHp < 0) this.currentHp = 0;
@@ -108,13 +108,9 @@ public class PocketMon {
         if (currentHp < 1) currentHp = 1;
     }
 
-    // ============================================
-    // 👇👇👇 重点：你要的 getExpToNextLevel 来了！ 👇👇👇
-    // ============================================
+
     public int getExpToNextLevel() {
-        // 如果已经满级，返回 0
         if (level >= EXP_REQUIREMENTS.length) return 0;
-        // 否则返回：下一级所需总经验 - 当前经验
         return EXP_REQUIREMENTS[level] - exp;
     }
 
@@ -131,9 +127,7 @@ public class PocketMon {
         return null;
     }
 
-    // ============================================
     // Getters
-    // ============================================
     public int getHp() { return currentHp; }
     public int getCurrentHp() { return currentHp; }
     public int getMaxHp() { return maxHp; }

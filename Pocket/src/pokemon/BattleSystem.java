@@ -6,7 +6,6 @@ public class BattleSystem {
     private Player player;
     private PocketMon wildPokemon;
 
-    // 网络输入输出流
     private PrintWriter out;
     private BufferedReader in;
 
@@ -17,12 +16,11 @@ public class BattleSystem {
     private static final double CRITICAL_MULTIPLIER = 1.5;
     private static final double ENEMY_HEAL_CHANCE = 0.20;
 
-    // 构造函数修改，接收网络流
     public BattleSystem(Player player, PocketMon wildPokemon, PrintWriter out, BufferedReader in) {
         this.player = player;
         this.wildPokemon = wildPokemon;
-        this.out = out; // 输出流
-        this.in = in;   // 输入流
+        this.out = out;
+        this.in = in;
         this.battleActive = true;
     }
 
@@ -34,7 +32,6 @@ public class BattleSystem {
         }
     }
 
-    // 辅助发送消息方法
     private void send(String msg) {
         out.println(msg);
     }
@@ -54,11 +51,10 @@ public class BattleSystem {
         send("去吧！ " + playerPokemon.getBattleStatus());
         sleep(1500);
 
-        // 战斗循环
+
         while (battleActive && !playerPokemon.isFainted() && !wildPokemon.isFainted()) {
             showBattleStatus(playerPokemon);
 
-            // 玩家回合
             try {
                 playerTurn(playerPokemon);
             } catch (IOException e) {
@@ -202,7 +198,7 @@ public class BattleSystem {
                 send("使用了好伤药！恢复了50HP");
                 break;
             case "攻击强化剂":
-                send("使用了攻击强化剂！攻击力暂时提升了！");
+                send("使用了攻击强化剂！攻击力暂时提升了！(未开发)");
                 player.getBag().put(itemName, player.getBag().get(itemName) - 1);
                 break;
             default:

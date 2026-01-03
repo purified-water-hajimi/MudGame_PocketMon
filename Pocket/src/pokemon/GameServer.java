@@ -7,7 +7,7 @@ import java.util.*;
 public class GameServer {
     private static final int PORT = 6666;
 
-    // 存放所有在线玩家的列表 (线程安全)
+    // 存放所有在线玩家的列表
     private static List<ClientHandler> onlinePlayers = new Vector<>();
 
     public static void main(String[] args) {
@@ -20,7 +20,7 @@ public class GameServer {
             while (true) {
                 // 1. 等待客户端连接 (会阻塞直到有连接)
                 Socket socket = serverSocket.accept();
-                System.out.println("👋 有个新玩家连进来了！IP: " + socket.getInetAddress());
+                System.out.println("有个新玩家连进来了！IP: " + socket.getInetAddress());
 
                 // 2. 为每个连接创建一个处理线程
                 ClientHandler handler = new ClientHandler(socket);
@@ -34,10 +34,9 @@ public class GameServer {
         }
     }
 
-    // 广播消息给所有玩家 (比如“某某某上线了”)
+    // 广播消息给所有玩家
     public static void broadcast(String message, ClientHandler sender) {
         for (ClientHandler player : onlinePlayers) {
-            // 可以选择跳过发送者
             player.sendMessage(message);
         }
     }

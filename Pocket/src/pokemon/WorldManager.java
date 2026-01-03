@@ -3,16 +3,13 @@ package pokemon;
 import java.util.*;
 
 public class WorldManager {
-    // 1. 关键修改：改成 static，共享地图数据
     private static Map<String, Room> rooms = new HashMap<>();
 
-    // 2. 静态初始化块
     static {
         createRooms();
         setupRoomConnections();
     }
 
-    // 3. 创建房间
     private static void createRooms() {
         // 家
         rooms.put("home", new Room("home", "真新镇 - 你的家",
@@ -59,7 +56,6 @@ public class WorldManager {
                 "这里可以打工赚钱。使用 'work' 命令赚取金钱。\n南边回常青市(south)。"));
     }
 
-    // 4. 设置连接
     private static void setupRoomConnections() {
         // 家
         rooms.get("home").addExit("east", "pallet_town");

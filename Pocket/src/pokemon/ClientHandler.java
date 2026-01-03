@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
-    // 🌍 全局在线玩家列表 (名字 -> 处理器)
+    // 全局在线玩家列表 (名字 -> 处理器)
     public static final Map<String, ClientHandler> onlinePlayers = new ConcurrentHashMap<>();
 
     private Socket socket;
@@ -17,7 +17,7 @@ public class ClientHandler implements Runnable {
     private Room currentRoom;
     private boolean gameRunning = true;
 
-    // ⚔️ PvP 相关状态
+    // PvP 相关状态
     private ClientHandler duelTarget; // 我正在向谁发起挑战 / 谁向我发起了挑战
     private PvPBattle activeBattle;   // 当前正在进行的战斗对象
 
@@ -31,26 +31,22 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            // 强制 GBK 编码
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "GBK"));
             out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "GBK"), true);
 
             // ==========================================
-            // 1. 开场剧情与初始化 (完整版)
-            // ==========================================
+            // 1. 开场剧情与初始化
             showGameIntroduction();
             initializePlayer();
 
             // ==========================================
-            // 2. 注册到在线列表 (PvP 关键步骤)
-            // ==========================================
+            // 2. 注册到在线列表
             if (player != null) {
                 onlinePlayers.put(player.getName(), this);
             }
 
             // ==========================================
             // 3. 进入游戏世界
-            // ==========================================
             if (currentRoom == null) currentRoom = WorldManager.getStartRoom();
             if (currentRoom != null) currentRoom.addPlayer(this.player);
 
@@ -58,7 +54,6 @@ public class ClientHandler implements Runnable {
 
             // ==========================================
             // 4. 主循环 (指令监听)
-            // ==========================================
             String inputLine;
             while (gameRunning && (inputLine = in.readLine()) != null) {
                 inputLine = inputLine.trim();
@@ -66,11 +61,11 @@ public class ClientHandler implements Runnable {
 
                 System.out.println("玩家 [" + player.getName() + "] 输入: " + inputLine);
 
-                // 🔥 核心逻辑：如果是 PvP 状态，所有指令交给裁判处理
+                // 如果是 PvP 状态，所有指令交给裁判处理
                 if (activeBattle != null) {
                     activeBattle.handleInput(this, inputLine.toLowerCase());
                 } else {
-                    // 否则处理普通指令 (移动、买东西、打野怪等)
+                    // 否则处理普通指令
                     processCommand(inputLine.toLowerCase());
                 }
             }
@@ -88,8 +83,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 剧情与初始化 (完整还原，无删减)
-    // ============================================================
+    // 剧情与初始化
 
     private void showGameIntroduction() {
         out.println("=== 宝可梦 MUD 游戏 (联机 PvP 版) ===");
@@ -191,8 +185,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 核心指令处理 (包含 PvP 指令 + PvE 战斗 + 商店)
-    // ============================================================
+    // 核心指令处理 (包含 PvP 指令 + PvE 战斗 + 商店)
 
     private void processCommand(String input) {
         String[] parts = input.split(" ");
@@ -232,7 +225,7 @@ public class ClientHandler implements Runnable {
             case "bag": out.println(player.getBagContent()); break;
             case "map": out.println("你拿出地图看了一眼... (地图功能开发中)"); break;
 
-            // --- 治疗 (带地点检查) ---
+            // --- 治疗 ---
             case "heal":
                 if (currentRoom != null && currentRoom.getId().equals("pokemon_center")) {
                     out.println("乔伊小姐：欢迎来到宝可梦中心！");
@@ -284,8 +277,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 PvP 专用逻辑 (发起、接受、结束)
-    // ============================================================
+    // PvP 专用逻辑 (发起、接受、结束)
 
     private void handleDuelRequest(String targetName) {
         if (targetName.equals(player.getName())) {
@@ -332,11 +324,9 @@ public class ClientHandler implements Runnable {
         }
 
         if (accept) {
-            // 开始战斗！
             out.println("你接受了挑战！");
             duelTarget.sendMessage(player.getName() + " 接受了你的挑战！");
 
-            // 创建 PvP 裁判 (需要你有 PvPBattle 类)
             PvPBattle battle = new PvPBattle(duelTarget, this);
 
             // 设置双方状态为“战斗中”
@@ -349,7 +339,6 @@ public class ClientHandler implements Runnable {
             // 清空待处理目标
             this.duelTarget = null;
         } else {
-            // 拒绝
             out.println("你拒绝了挑战。");
             duelTarget.sendMessage(player.getName() + " 拒绝了你的挑战。");
             duelTarget.duelTarget = null;
@@ -366,8 +355,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 商店与道具逻辑 (完全还原具体价格)
-    // ============================================================
+    // 商店与道具逻辑
 
     private void showShop() {
         out.println("\n=== 友好商店 ===");
@@ -396,8 +384,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 移动与 PvE 战斗逻辑
-    // ============================================================
+    // 移动与 PvE 战斗逻辑
 
     private void handleMove(String direction) {
         String nextRoomId = currentRoom.getExit(direction);
@@ -443,7 +430,6 @@ public class ClientHandler implements Runnable {
     private void triggerBattle(PocketMon wildPokemon) {
         out.println("野生的 " + wildPokemon.getName() + " 跳出来了！");
 
-        // 调用原有的单机/打怪战斗系统
         BattleSystem battle = new BattleSystem(player, wildPokemon, out, in);
         battle.startBattle();
 
@@ -455,8 +441,7 @@ public class ClientHandler implements Runnable {
     }
 
     // ============================================================
-    // 👇 辅助方法 (Help, PrintInfo, SendMessage)
-    // ============================================================
+    // 辅助方法 (Help, PrintInfo, SendMessage)
 
     private void showHelp() {
         out.println("\n=== 游戏操作指南 ===");

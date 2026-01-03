@@ -10,7 +10,6 @@ public class Player {
 
     public Player(String name) {
         this.name = name;
-        // 使用 Vector 确保线程安全
         this.team = new Vector<>();
         this.bag = new HashMap<>();
         this.money = 1000;
@@ -26,7 +25,7 @@ public class Player {
         bag.put("防御强化剂", 1);
     }
 
-    // 获取状态 (返回字符串给 ClientHandler 打印)
+    // 获取状态
     public String getStatus() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== 训练家 " + name + " ===\n");
@@ -148,7 +147,7 @@ public class Player {
     public void deductMoney(int amount) {
         this.money -= amount;
         if (this.money < 0) {
-            this.money = 0; // 防止金额变成负数
+            this.money = 0;
         }
     }
 }

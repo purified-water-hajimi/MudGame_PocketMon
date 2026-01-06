@@ -1,20 +1,22 @@
 package pokemon;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class WorldManager {
-    private static Map<String, Room> rooms = new HashMap<>();
 
+    // 共享地图数据（多线程/多玩家共用同一张地图）
+    private static final Map<String, Room> rooms = new HashMap<>();
+
+    // 静态初始化
     static {
         createRooms();
         setupRoomConnections();
     }
 
+    // 1) 创建房间
     private static void createRooms() {
-        // 家
-        rooms.put("home", new Room("home", "真新镇 - 你的家",
-                "这是你的房间，阳光透过窗户洒进来。墙上贴着宝可梦海报。\n楼下通往 east。"));
-
+        // 家（起点）
         Room home = new Room(
                 "home",
                 "家",
@@ -23,15 +25,17 @@ public class WorldManager {
         );
         rooms.put("home", home);
 
-        // 训练镇：专门练习战斗的地方，不放野怪
+        // 训练镇：专门练习打斗的地方，不放野怪
         Room trainingTown = new Room(
-                "training_town", "训练镇",
+                "training_town",
+                "训练镇",
                 "这里聚集了许多训练家，是专门练习战斗的地方。\n" +
                         "这里不会随机遇到野生宝可梦。\n" +
                         "向西回家(west)。"
         );
         rooms.put("training_town", trainingTown);
 
+        // 1号道路
         Room route1 = new Room(
                 "route_1",
                 "1号道路",
@@ -42,6 +46,7 @@ public class WorldManager {
         route1.addWildPokemon(new PocketMon("小拉达", PocketMon.Type.NORMAL, 2), 1.0);
         rooms.put("route_1", route1);
 
+        // 常青森林
         Room viridianForest = new Room(
                 "viridian_forest",
                 "常青森林",
@@ -53,6 +58,7 @@ public class WorldManager {
         viridianForest.addWildPokemon(new PocketMon("波波", PocketMon.Type.FLYING, 3), 1.0);
         rooms.put("viridian_forest", viridianForest);
 
+        // 常青市
         Room viridianCity = new Room(
                 "viridian_city",
                 "常青市",
@@ -62,6 +68,7 @@ public class WorldManager {
         );
         rooms.put("viridian_city", viridianCity);
 
+        // 宝可梦中心
         Room pokemonCenter = new Room(
                 "pokemon_center",
                 "宝可梦中心",
@@ -71,15 +78,17 @@ public class WorldManager {
         );
         rooms.put("pokemon_center", pokemonCenter);
 
+        // 商店
         Room pokemart = new Room(
                 "pokemart",
                 "友好商店",
                 "货架上摆满了各种道具。\n" +
-                        "提示：你可以输入 shop 查看商品，buy [物品名] [数量]购买。\n" +
+                        "提示：你可以输入 shop 查看商品，buy [物品名] 购买。\n" +
                         "向东回常青市(east)。"
         );
         rooms.put("pokemart", pokemart);
 
+        // 打工场所
         Room workPlace = new Room(
                 "work_place",
                 "打工场所",
@@ -90,6 +99,7 @@ public class WorldManager {
         rooms.put("work_place", workPlace);
     }
 
+    // 2) 房间连接
     private static void setupRoomConnections() {
         rooms.get("home").addExit("north", "route_1");
         rooms.get("route_1").addExit("south", "home");
@@ -121,10 +131,14 @@ public class WorldManager {
         return rooms.get(id);
     }
 
+    // ===================== 地图渲染（紧凑 + 正确对齐版） =====================
 
-    private static final int CELL_W = 28;
-    private static final int GAP = 3;
+    // 横向连接线（更紧凑可改成 "─"；更显眼可改成 "───"）
+    private static final String HORIZ_CONNECT = "──";
+    // 连接线两侧空格（更紧凑设 0；更清晰设 1）
+    private static final int GAP = 1;
 
+    // 计算显示宽度（ASCII=1，全角/中文=2）
     private static int displayWidth(String s) {
         int w = 0;
         for (int i = 0; i < s.length(); i++) {
@@ -141,62 +155,122 @@ public class WorldManager {
         return sb.toString();
     }
 
+    private static String spaces(int n) {
+        return repeat(' ', n);
+    }
+
     private static String padRightByDisplayWidth(String s, int targetWidth) {
         int w = displayWidth(s);
         if (w >= targetWidth) return s;
         return s + repeat(' ', targetWidth - w);
     }
 
-    private static String cell(String currentRoomId, String roomId, String roomName) {
-        String mark = roomId.equals(currentRoomId) ? ">>" : "  ";
+    // 动态计算每个单元格宽度：避免 CELL_W 固定过大导致“空太大”
+    private static int computeCellW(String currentRoomId) {
+        String[] ids = {
+                "work_place", "pokemart", "viridian_city", "pokemon_center",
+                "route_1", "viridian_forest", "home", "training_town"
+        };
+        int max = 0;
+        for (String id : ids) {
+            String name = rooms.get(id).getName();
+            String mark = id.equals(currentRoomId) ? "▶ " : "  ";
+            String text = mark + name + "(" + id + ")";
+            max = Math.max(max, displayWidth(text));
+        }
+        // +2 留边距；并给一个上限，避免名字过长把地图撑爆（按需调）
+        int w = max + 2;
+        return Math.min(w, 28);
+    }
+
+    private static String cell(String currentRoomId, String roomId, String roomName, int cellW) {
+        String mark = roomId.equals(currentRoomId) ? "▶ " : "  ";
         String text = mark + roomName + "(" + roomId + ")";
-        return padRightByDisplayWidth(text, CELL_W);
+        return padRightByDisplayWidth(text, cellW);
     }
 
-    private static String row3(String c0, String c1, String c2) {
-        return c0 + repeat(' ', GAP) + c1 + repeat(' ', GAP) + c2;
-    }
-
-    private static String vLineAtCol1() {
-        int col1Start = CELL_W + GAP;
-        int x = col1Start + CELL_W / 2;
-        return repeat(' ', x) + "|";
-    }
-
+    /**
+     * 紧凑 + 对齐正确的地图：
+     *
+     *                 打工场所
+     *                    │
+     *   友好商店 ─ 常青市 ─ 宝可梦中心
+     *                    │
+     *                 1号道路 ─ 常青森林
+     *                    │
+     *                  家 ─ 训练镇
+     */
     public static String getAsciiMap(String currentRoomId) {
+        int cellW = computeCellW(currentRoomId);
 
-        String cHome   = cell(currentRoomId, "home", "家");
-        String cTrain  = cell(currentRoomId, "training_town", "训练镇");
-        String cRoute1 = cell(currentRoomId, "route_1", "1号道路");
-        String cForest = cell(currentRoomId, "viridian_forest", "常青森林");
-        String cCity   = cell(currentRoomId, "viridian_city", "常青市");
-        String cCenter = cell(currentRoomId, "pokemon_center", "宝可梦中心");
-        String cMart   = cell(currentRoomId, "pokemart", "友好商店");
-        String cWork   = cell(currentRoomId, "work_place", "打工场所");
-        String blank   = padRightByDisplayWidth("", CELL_W);
+        String cWork   = cell(currentRoomId, "work_place", "打工场所", cellW);
+        String cMart   = cell(currentRoomId, "pokemart", "友好商店", cellW);
+        String cCity   = cell(currentRoomId, "viridian_city", "常青市", cellW);
+        String cCenter = cell(currentRoomId, "pokemon_center", "宝可梦中心", cellW);
+        String cRoute1 = cell(currentRoomId, "route_1", "1号道路", cellW);
+        String cForest = cell(currentRoomId, "viridian_forest", "常青森林", cellW);
+        String cHome   = cell(currentRoomId, "home", "家", cellW);
+        String cTrain  = cell(currentRoomId, "training_town", "训练镇", cellW);
+
+        String conn = spaces(GAP) + HORIZ_CONNECT + spaces(GAP);
+
+        // 中间格（常青市）起始列：左格 + conn
+        int midStart = cellW + conn.length();
+
+        // 竖线对齐到中间格中点（近似）
+        int midAxis = midStart + (cellW / 2);
+
+        String vLine = spaces(midAxis) + "│";
 
         StringBuilder sb = new StringBuilder();
-        sb.append("=========== 世界地图 ===========\n");
+        sb.append("═══════════════════════════════════════════════════════════════════════════════════════\n");
+        sb.append("                                        世界地图                             \n");
+        sb.append("═══════════════════════════════════════════════════════════════════════════════════════\n\n");
 
-        // 顶部：work_place 在中间列
-        sb.append(row3(blank, cWork, blank)).append("\n");
-        sb.append(vLineAtCol1()).append("\n");
+        // 打工场所（对齐到中间列起点）
+        sb.append(spaces(midStart)).append(cWork).append("\n");
+        sb.append(vLine).append("\n");
 
-        sb.append(row3(cMart, cCity, cCenter)).append("\n");
-        sb.append(vLineAtCol1()).append("\n");
+        // 友好商店 ─ 常青市 ─ 宝可梦中心
+        sb.append(cMart).append(conn).append(cCity).append(conn).append(cCenter).append("\n");
+        sb.append(vLine).append("\n");
 
-        sb.append(row3(blank, cRoute1, cForest)).append("\n");
+        // 1号道路 ─ 常青森林（对齐到中间列起点）
+        sb.append(spaces(midStart)).append(cRoute1).append(conn).append(cForest).append("\n");
+        sb.append(vLine).append("\n");
 
-        int col0Center = CELL_W / 2;
-        int col1Start = CELL_W + GAP;
-        int col1Center = col1Start + CELL_W / 2;
-        sb.append(repeat(' ', col0Center)).append("|")
-                .append(repeat(' ', col1Center - col0Center - 1)).append("|")
-                .append("\n");
+        int homeShift = 6;
 
-        sb.append(row3(cHome, cTrain, blank)).append("\n");
+        // 家 ─ 训练镇（对齐到中间列起点）
+        sb.append(spaces(midStart)).append(spaces(homeShift)).append(cHome).append(spaces(Math.max(0, conn.length()-homeShift))).append("——").append(cTrain).append("\n\n");
 
-        sb.append("================================\n");
+        sb.append("═══════════════════════════════════════════════════════════════════════════════════════\n");
+        sb.append("图例: ▶ 当前位置\n");
         return sb.toString();
+    }
+
+    /**
+     * 获取简化的文本地图，用于紧凑显示（保留你原来的写法也行）
+     */
+    public static String getSimpleMap(String currentRoomId) {
+        return String.format(
+                "世界地图 (当前位置: %s)\n" +
+                        "  %s\n" +
+                        "    ↓\n" +
+                        "%s ← %s → %s\n" +
+                        "    ↓\n" +
+                        "  %s → %s\n" +
+                        "    ↓\n" +
+                        "  %s → %s\n",
+                rooms.get(currentRoomId).getName(),
+                rooms.get("work_place").getName(),
+                rooms.get("pokemart").getName(),
+                rooms.get("viridian_city").getName(),
+                rooms.get("pokemon_center").getName(),
+                rooms.get("route_1").getName(),
+                rooms.get("viridian_forest").getName(),
+                rooms.get("home").getName(),
+                rooms.get("training_town").getName()
+        );
     }
 }

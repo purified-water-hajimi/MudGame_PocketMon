@@ -187,7 +187,7 @@ public class Player implements Serializable {
         }
     }
 
-    public static void savePlayer(Player player) {
+    public static boolean savePlayer(Player player) {
         try {
             File dir = new File("saves");
             if (!dir.exists()) dir.mkdirs();
@@ -199,10 +199,10 @@ public class Player implements Serializable {
 
             out.close();
             fileOut.close();
-            player.sendMessage("存档成功！");
+            return true; // 返回成功
         } catch (IOException e) {
-            player.sendMessage("存档失败：" + e.getMessage());
             e.printStackTrace();
+            return false; // 返回失败
         }
     }
 

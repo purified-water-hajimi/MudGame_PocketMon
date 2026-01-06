@@ -64,20 +64,14 @@ public class ClientHandler implements Runnable {
 
             showHelp();
             printRoomInfo();
+            out.println(WorldManager.getAsciiMap(currentRoom.getId()));
 
             while (gameRunning) {
-                if (activeBattle != null) {
-                    String input = in.readLine();
-                    if (input != null) {
-                        activeBattle.handleInput(this, input.trim());
-                    } else {
-                        break;
-                    }
-                    continue;
-                }
 
-                out.print("> ");
-                out.flush();
+                if (activeBattle == null) {
+                    out.print("> ");
+                    out.flush();
+                }
 
                 String input = in.readLine();
                 if (input == null) break;
@@ -85,7 +79,11 @@ public class ClientHandler implements Runnable {
                 input = input.trim();
                 if (input.isEmpty()) continue;
 
-                processCommand(input);
+                if (activeBattle != null) {
+                    activeBattle.handleInput(this, input);
+                } else {
+                    processCommand(input);
+                }
             }
 
         } catch (IOException e) {
@@ -270,7 +268,11 @@ public class ClientHandler implements Runnable {
                 break;
 
             case "save":
-                Player.savePlayer(player);
+                if(Player.savePlayer(player)) {
+                    out.println("存档成功！");
+                } else {
+                    out.println("存档失败！");
+                }
                 break;
 
             case "load":

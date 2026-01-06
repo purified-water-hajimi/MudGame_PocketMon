@@ -64,7 +64,7 @@ public class PvPBattle {
         double multiplier = getTypeMultiplier(skill.getType(), enemyPoke.getType());
 
         int baseDamage = (skill.getPower() + myPoke.getAttack()) - enemyPoke.getDefense();
-        if (baseDamage < 1) baseDamage = 1; // 保底伤害
+        if (baseDamage < 1) baseDamage = 1;
 
         int finalDamage = (int) (baseDamage * multiplier);
 
@@ -82,9 +82,10 @@ public class PvPBattle {
         broadcast("对 " + enemyPoke.getName() + " 造成了 " + finalDamage + " 点伤害！");
 
         if (enemyPoke.isFainted()) {
-            broadcast("\n " + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
-            endBattle(attacker);
+            broadcast("\n" + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
+            endBattle(attacker); // 结束战斗
         } else {
+            // 只有战斗还在继续时，才交换回合、打印状态、提示下一步
             currentTurn = defender;
 
             broadcast("--------------------------------");
@@ -143,16 +144,21 @@ public class PvPBattle {
 
     private void endBattle(ClientHandler winner) {
         if (winner != null) {
-            broadcast("\n胜者是: " + winner.getPlayer().getName() + "！");
+            broadcast("\n=========================");
+            broadcast("   胜者是: " + winner.getPlayer().getName() + "！");
+            broadcast("=========================");
+
             winner.getPlayer().addMoney(200);
             winner.sendMessage("你获得了 200元 奖金！");
 
             ClientHandler loser = (winner == p1) ? p2 : p1;
             loser.getPlayer().declineMoney(200);
-            loser.sendMessage("遗憾！你输了，扣除200元作为惩罚");
+            loser.sendMessage("遗憾！你输了，扣除200元作为惩罚。");
         } else {
             broadcast("\n战斗异常结束。");
         }
+
+        // 分别结束双方的战斗状态
         p1.endPvP();
         p2.endPvP();
     }
@@ -168,5 +174,4 @@ public class PvPBattle {
         p1.sendMessage(msg);
         p2.sendMessage(msg);
     }
-
 }

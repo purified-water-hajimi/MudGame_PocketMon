@@ -148,7 +148,7 @@ public class PvPBattle {
             winner.sendMessage("你获得了 200元 奖金！");
 
             ClientHandler loser = (winner == p1) ? p2 : p1;
-            loser.getPlayer().deductMoney(200);
+            loser.getPlayer().declineMoney(200);
             loser.sendMessage("遗憾！你输了，扣除200元作为惩罚");
         } else {
             broadcast("\n战斗异常结束。");

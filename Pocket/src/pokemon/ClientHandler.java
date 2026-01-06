@@ -4,9 +4,9 @@ import java.io.*;
 import java.net.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 public class ClientHandler implements Runnable {
-    // 全局在线玩家列表 (名字 -> 处理器)
     public static final Map<String, ClientHandler> onlinePlayers = new ConcurrentHashMap<>();
 
     private final Socket socket;
@@ -29,8 +29,8 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "GBK"));
-            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "GBK"), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+            out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
 
             out.println("欢迎来到《宝可梦多人联机 MUD》！");
             out.println("请输入你的名字：");
@@ -39,33 +39,33 @@ public class ClientHandler implements Runnable {
             if (name == null) return;
             name = name.trim();
 
-            // 登录：读档 or 新建
             if (isSaveExists(name)) {
                 player = Player.loadPlayer(name);
                 out.println("读取存档成功，欢迎回来 " + player.getName() + "！");
             } else {
-                initializePlayer();
-                out.println("新玩家创建成功，欢迎你 " + player.getName() + "！");
+                out.println("新玩家创建成功，欢迎你 " + name + "！");
+                initializePlayer(name);
             }
 
-            // 起点房间
-            currentRoom = WorldManager.getStartRoom();
+            player.setOut(out);
 
-            // 加入在线玩家表
+            if (player.getCurrentMap() != null) {
+                currentRoom = WorldManager.getRoom(player.getCurrentMap());
+            }
+            if (currentRoom == null) {
+                currentRoom = WorldManager.getStartRoom();
+                player.setCurrentMap(currentRoom.getId());
+            }
+
             onlinePlayers.put(player.getName(), this);
             broadcast("玩家 " + player.getName() + " 上线了！当前在线：" + onlinePlayers.size() + " 人");
 
-            // ==========================================
-            // 3. 进入游戏世界
-            if (currentRoom == null) currentRoom = WorldManager.getStartRoom();
             if (currentRoom != null) currentRoom.addPlayer(this.player);
 
             showHelp();
             printRoomInfo();
 
-            // 主循环
             while (gameRunning) {
-                // 如果正在 PvP，将输入权交给 PvPBattle 处理
                 if (activeBattle != null) {
                     String input = in.readLine();
                     if (input != null) {
@@ -91,40 +91,21 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.out.println("玩家 [" + (player != null ? player.getName() : "Unknown") + "] 断开连接");
         } finally {
-            // 玩家下线清理逻辑
             if (player != null) {
-                onlinePlayers.remove(player.getName()); // 从在线列表移除
+                onlinePlayers.remove(player.getName());
                 if (currentRoom != null) currentRoom.removePlayer(player);
-                // 如果正在战斗中下线，通知对手
-                if (activeBattle != null) {
-                    // activeBattle.forceEnd(this); // 如果你有这个方法的话
-                }
+                Player.savePlayer(player);
             }
             try { socket.close(); } catch (IOException e) {}
         }
     }
 
-    // 存档检查
     private boolean isSaveExists(String name) {
         File f = new File("saves/" + name + ".ser");
         return f.exists();
     }
 
-    // ============================================================
-    // 剧情与初始化
-
-    private void showGameIntroduction() {
-        out.println("=== 宝可梦 MUD 游戏 (联机 PvP 版) ===");
-        sleep(1000);
-        out.println("\n欢迎！这是一个充满冒险和挑战的世界。");
-        sleep(1200);
-        showHelp();
-        sleep(1000);
-        out.println("\n按回车键开始冒险...");
-        try { in.readLine(); } catch (IOException e) {}
-    }
-
-    private void initializePlayer() throws IOException {
+    private void initializePlayer(String name) throws IOException {
         out.println("\n【真新镇 - 大木研究所】");
         sleep(800);
         out.println("阳光透过窗户洒在地板上。墙上贴着各种宝可梦的海报，桌上整齐地摆放着研究资料。");
@@ -132,16 +113,11 @@ public class ClientHandler implements Runnable {
         out.println("突然，楼下传来声音：\"快来，大木博士在等你！\"");
         sleep(1000);
 
-        out.println("\n请输入你的名字: ");
-        String playerName = in.readLine();
-        if (playerName == null || playerName.trim().isEmpty()) playerName = "小智";
-
-        this.player = new Player(playerName);
-        // 如果你的 Player 类支持 setClientHandler，请取消下面这行的注释
-        // this.player.setClientHandler(this);
+        this.player = new Player(name);
+        this.player.setOut(out);
 
         sleep(800);
-        out.println("\n博士：\"欢迎，" + playerName + "！你是刚满10岁的新人训练家吧。\"");
+        out.println("\n博士：\"欢迎，" + name + "！你是刚满10岁的新人训练家吧。\"");
         sleep(1500);
         out.println("博士指着桌上的三个精灵球...");
         sleep(1200);
@@ -212,9 +188,6 @@ public class ClientHandler implements Runnable {
         try { in.readLine(); } catch (IOException e) {}
     }
 
-    // ============================================================
-    // 核心指令处理 (包含 PvP 指令 + PvE 战斗 + 商店)
-
     private void processCommand(String input) {
         String[] parts = input.split(" ");
         String command = parts[0];
@@ -240,18 +213,15 @@ public class ClientHandler implements Runnable {
                 handleDuelResponse(false);
                 break;
 
-            // --- 移动指令 ---
             case "n": case "north": handleMove("north"); break;
             case "s": case "south": handleMove("south"); break;
             case "e": case "east": handleMove("east"); break;
             case "w": case "west": handleMove("west"); break;
 
-            // --- 观察与状态 ---
             case "look": printRoomInfo(); break;
             case "status": out.println(player.getStatus()); break;
             case "bag": out.println(player.getBagContent()); break;
             case "map":
-                // 确保 WorldManager 有 getAsciiMap 或 getMapView 方法
                 out.println(WorldManager.getAsciiMap(currentRoom != null ? currentRoom.getId() : ""));
                 break;
             case "go":
@@ -259,19 +229,18 @@ public class ClientHandler implements Runnable {
                 else out.println("指令格式：go 方向");
                 break;
 
-            // --- 治疗 ---
             case "heal":
                 if (currentRoom != null && currentRoom.getId().equals("pokemon_center")) {
                     out.println("乔伊小姐：欢迎来到宝可梦中心！");
                     sleep(500);
                     out.println("乔伊小姐：你的宝可梦恢复精神了！");
-                    out.println(player.healTeam());
+                    player.healTeam();
+                    Player.savePlayer(player);
                 } else {
                     out.println("这里不是【宝可梦中心】，无法治疗！");
                 }
                 break;
 
-            // --- PvE 野外战斗 (主动触发) ---
             case "battle":
                 startActiveBattle();
                 break;
@@ -280,13 +249,12 @@ public class ClientHandler implements Runnable {
                 handleTrain();
                 break;
 
-            // --- 商店 ---
             case "shop": showShop(); break;
 
-            // --- 打工 ---
             case "work":
                 if (currentRoom != null && currentRoom.getId().equals("work_place")) {
-                    out.println(player.work());
+                    player.work();
+                    Player.savePlayer(player);
                 } else {
                     out.println("这里不能打工！请去【常青市】北边的打工场所。");
                 }
@@ -295,7 +263,6 @@ public class ClientHandler implements Runnable {
                 showOnlinePlayers();
                 break;
 
-            // --- 帮助与退出 ---
             case "help": showHelp(); break;
             case "quit": case "exit":
                 out.println("再见！");
@@ -304,16 +271,25 @@ public class ClientHandler implements Runnable {
 
             case "save":
                 Player.savePlayer(player);
-                out.println("存档完成！");
-                out.println("(提示) 可继续冒险，或输入 exit 退出。");
                 break;
 
             case "load":
-                player = Player.loadPlayer(player.getName());
-                out.println("读档完成！当前进度已覆盖为存档内容。");
-                out.println("(提示) 可输入 status 查看状态。");
+                Player loaded = Player.loadPlayer(player.getName());
+                if (loaded != null) {
+                    player = loaded;
+                    player.setOut(out);
+
+                    if (player.getCurrentMap() != null) {
+                        Room savedRoom = WorldManager.getRoom(player.getCurrentMap());
+                        if (savedRoom != null) {
+                            if (currentRoom != null) currentRoom.removePlayer(this.player);
+                            currentRoom = savedRoom;
+                            currentRoom.addPlayer(this.player);
+                        }
+                    }
+                    out.println("读档完成！当前进度已覆盖为存档内容。");
+                }
                 break;
-            // --- 复合指令 (use/buy) ---
             default:
                 if (input.startsWith("use ")) {
                     if (parts.length > 1) player.useItem(parts[1]);
@@ -327,9 +303,6 @@ public class ClientHandler implements Runnable {
                 break;
         }
     }
-
-    // ============================================================
-    // PvP 专用逻辑 (发起、接受、结束)
 
     private void handleTrain(){
         if (currentRoom == null || !"training_town".equals(currentRoom.getId())) {
@@ -352,11 +325,12 @@ public class ClientHandler implements Runnable {
             int bonusMoney = 10 + lvl * 2;
             int bonusExp   = 5 + lvl * 2;
 
-            player.gainMoney(bonusMoney);
+            player.addMoney(bonusMoney);
             my.gainExp(bonusExp);
 
             out.println("训练奖励：+" + bonusMoney + " 金币，+" + bonusExp + " 经验。");
             out.println("(提示) 可继续 train 训练，或 go west 回家。");
+            Player.savePlayer(player);
         }
     }
 
@@ -385,19 +359,16 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        // 检查两人是否在同一个房间
         if (targetHandler.currentRoom != this.currentRoom) {
             out.println("你必须和他在同一个房间才能发起挑战！他在: " + targetHandler.currentRoom.getName());
             return;
         }
 
-        // 发送请求
         this.duelTarget = targetHandler;
         targetHandler.receiveDuelRequest(this);
         out.println("已向 " + targetName + " 发起挑战！等待对方接受...");
     }
 
-    // 被挑战方收到消息
     public void receiveDuelRequest(ClientHandler challenger) {
         this.duelTarget = challenger;
         out.println("\n收到挑战！");
@@ -405,7 +376,6 @@ public class ClientHandler implements Runnable {
         out.println("输入 'yes' (接受) 或 'no' (拒绝)");
     }
 
-    // 处理接受或拒绝
     private void handleDuelResponse(boolean accept) {
         if (duelTarget == null) {
             out.println("目前没有人向你发起挑战。");
@@ -418,14 +388,11 @@ public class ClientHandler implements Runnable {
 
             PvPBattle battle = new PvPBattle(duelTarget, this);
 
-            // 设置双方状态为“战斗中”
             this.activeBattle = battle;
             duelTarget.activeBattle = battle;
 
-            // 启动战斗
             battle.start();
 
-            // 清空待处理目标
             this.duelTarget = null;
         } else {
             out.println("你拒绝了挑战。");
@@ -435,16 +402,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // 战斗结束回调
     public void endPvP() {
         this.activeBattle = null;
         this.duelTarget = null;
         out.println("PvP 结束，回归自由行动模式。");
         printRoomInfo();
+        Player.savePlayer(player);
     }
-
-    // ============================================================
-    // 商店与道具逻辑
 
     private void showShop() {
         out.println("\n=== 友好商店 ===");
@@ -470,10 +434,8 @@ public class ClientHandler implements Runnable {
             default: out.println("店员：没有这种商品哦。"); return;
         }
         out.println("(系统) 正在尝试购买 " + itemName + "...");
+        Player.savePlayer(player);
     }
-
-    // ============================================================
-    // 移动与 PvE 战斗逻辑
 
     private void broadcast(String msg) {
         for (ClientHandler ch : onlinePlayers.values()) {
@@ -492,14 +454,13 @@ public class ClientHandler implements Runnable {
             currentRoom.removePlayer(this.player);
             currentRoom = nextRoom;
             currentRoom.addPlayer(this.player);
+            player.setCurrentMap(currentRoom.getId());
             printRoomInfo();
 
-            // 移动后触发随机遇敌 (30%)
             checkRandomEncounter();
         }
     }
 
-    // 随机遇敌 (PvE)
     private void checkRandomEncounter() {
         PocketMon wildPokemon = currentRoom.getRandomWildPokemon();
         if (wildPokemon != null && Math.random() < 0.3) {
@@ -509,7 +470,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // 主动找怪 (PvE)
     private void startActiveBattle() {
         out.println("正在寻找野生宝可梦...");
         sleep(1000);
@@ -521,7 +481,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // 触发 PvE 战斗
     private void triggerBattle(PocketMon wildPokemon) {
         out.println("野生的 " + wildPokemon.getName() + " 跳出来了！");
 
@@ -533,10 +492,8 @@ public class ClientHandler implements Runnable {
         } else {
             out.println("你输了，眼前一黑...");
         }
+        Player.savePlayer(player);
     }
-
-    // ============================================================
-    // 辅助方法 (Help, PrintInfo, SendMessage)
 
     private void showHelp() {
         out.println("\n=== 指令帮助 ===");
@@ -567,9 +524,12 @@ public class ClientHandler implements Runnable {
         out.println("\n================================");
         out.println(currentRoom.getFullDescription());
         out.println("可用出口: " + currentRoom.getAvailableExits());
-        // 显示当前房间的其他玩家
         out.println(currentRoom.getPlayerNames(this.player));
         out.println("================================");
+    }
+
+    public void setOut(PrintWriter out) {
+        this.out = out;
     }
 
     public void sendMessage(String msg) {

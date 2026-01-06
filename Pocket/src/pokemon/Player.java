@@ -4,19 +4,21 @@ import java.util.*;
 import java.io.*;
 
 public class Player implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private String name;
     private List<PocketMon> team;
     private Map<String, Integer> bag;
     private int money;
-    private int hp;
+    private String currentMap;
+    private transient PrintWriter out;
 
     public Player(String name) {
         this.name = name;
         this.team = new ArrayList<>();
         this.bag = new HashMap<>();
         this.money = 1000;
+        this.currentMap = "home";
         initializePlayer();
     }
 
@@ -29,10 +31,22 @@ public class Player implements Serializable {
         bag.put("防御强化剂", 1);
     }
 
-    // 获取状态
+    public void setOut(PrintWriter out) {
+        this.out = out;
+    }
+
+    public void sendMessage(String msg) {
+        if (out != null) {
+            out.println(msg);
+        } else {
+            System.out.println(msg);
+        }
+    }
+
     public String getStatus() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== 训练家 " + name + " ===\n");
+        sb.append("当前位置: " + currentMap + "\n");
         sb.append("金钱: " + money + "元\n");
         sb.append("队伍:\n");
         if (team.isEmpty()) {
@@ -47,7 +61,6 @@ public class Player implements Serializable {
         return sb.toString();
     }
 
-    // 获取背包内容
     public String getBagContent() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== 背包 ===\n");
@@ -65,78 +78,94 @@ public class Player implements Serializable {
         return sb.toString();
     }
 
-    // 使用物品
-    public String useItem(String itemName) {
+    public void useItem(String itemName) {
         if (!bag.containsKey(itemName) || bag.get(itemName) <= 0) {
-            return "你没有" + itemName + "。";
+            sendMessage("你没有" + itemName + "。");
+            return;
         }
 
         if (team.isEmpty()) {
-            return "你没有可用的宝可梦！";
+            sendMessage("你没有可用的宝可梦！");
+            return;
         }
 
         PocketMon targetPokemon = team.get(0);
         String resultMsg = "";
+        boolean isUsed = false;
 
         switch (itemName) {
             case "伤药":
+                if (targetPokemon.getCurrentHp() == targetPokemon.getMaxHp()) {
+                    sendMessage("HP已经是满的了！");
+                    return;
+                }
                 targetPokemon.heal(20);
-                bag.put(itemName, bag.get(itemName) - 1);
-                resultMsg = "使用了伤药！恢复了20HP";
+                resultMsg = "使用了伤药！" + targetPokemon.getName() + "恢复了20HP";
+                isUsed = true;
                 break;
             case "好伤药":
+                if (targetPokemon.getCurrentHp() == targetPokemon.getMaxHp()) {
+                    sendMessage("HP已经是满的了！");
+                    return;
+                }
                 targetPokemon.heal(50);
-                bag.put(itemName, bag.get(itemName) - 1);
-                resultMsg = "使用了好伤药！恢复了50HP";
+                resultMsg = "使用了好伤药！" + targetPokemon.getName() + "恢复了50HP";
+                isUsed = true;
                 break;
             case "经验糖果":
                 targetPokemon.gainExp(100);
-                bag.put(itemName, bag.get(itemName) - 1);
                 resultMsg = "使用了经验糖果！获得了100经验值";
+                isUsed = true;
                 break;
             case "攻击强化剂":
-                // 战斗外使用没有实际效果，暂作提示
                 resultMsg = "使用了攻击强化剂！(需要在战斗中使用才有效)";
-                bag.put(itemName, bag.get(itemName) - 1);
+                isUsed = true;
                 break;
             default:
-                return "无法在非战斗状态使用 " + itemName;
+                sendMessage("无法在非战斗状态使用 " + itemName);
+                return;
         }
 
-        if (bag.get(itemName) <= 0) bag.remove(itemName);
-        return resultMsg;
+        if (isUsed) {
+            bag.put(itemName, bag.get(itemName) - 1);
+            if (bag.get(itemName) <= 0) bag.remove(itemName);
+
+            sendMessage("--------------------------------");
+            sendMessage(resultMsg);
+            sendMessage("--------------------------------");
+        }
     }
 
-    public String healTeam() {
+    public void healTeam() {
         for (PocketMon pm : team) pm.fullHeal();
-        return "所有宝可梦已完全恢复！";
+        sendMessage("所有宝可梦已完全恢复！");
     }
 
-    // 购买道具
-    public String buyItem(String itemName, int price) {
+    public void buyItem(String itemName, int price) {
         if (money < price) {
-            return "金钱不足！需要" + price + "元，但你只有" + money + "元。";
+            sendMessage("金钱不足！需要" + price + "元，但你只有" + money + "元。");
+            return;
         }
         money -= price;
         bag.put(itemName, bag.getOrDefault(itemName, 0) + 1);
-        return "购买了 " + itemName + "！花费" + price + "元\n剩余金钱: " + money + "元";
+        sendMessage("购买了 " + itemName + "！花费" + price + "元");
+        sendMessage("剩余金钱: " + money + "元");
     }
 
-    // 打工
-    public String work() {
+    public void work() {
         int earnings = 200 + (int)(Math.random() * 100);
         money += earnings;
-        return "打工完成！赚取了" + earnings + "元\n当前金钱: " + money + "元";
-    }
-
-    public void gainMoney(int amount) {
-        money += amount;
+        sendMessage("打工完成！赚取了" + earnings + "元");
+        sendMessage("当前金钱: " + money + "元");
     }
 
     public String getName() { return name; }
     public List<PocketMon> getTeam() { return team; }
     public int getMoney() { return money; }
     public Map<String, Integer> getBag() { return bag; }
+
+    public String getCurrentMap() { return currentMap; }
+    public void setCurrentMap(String map) { this.currentMap = map; }
 
     public void setStarterPokemon(PocketMon starter) {
         this.team.add(starter);
@@ -145,16 +174,19 @@ public class Player implements Serializable {
     public PocketMon getFirstPokemon() {
         return team.isEmpty() ? null : team.get(0);
     }
+
     public void addMoney(int amount) {
         this.money += amount;
     }
-    public void deductMoney(int amount) {
-        this.money -= amount;
-        if (this.money < 0) {
+
+    public void declineMoney(int amount) {
+        if(this.money < amount) {
             this.money = 0;
+        } else {
+            this.money -= amount;
         }
     }
-    // 存档 / 读档（自动创建 saves/ 目录）
+
     public static void savePlayer(Player player) {
         try {
             File dir = new File("saves");
@@ -162,24 +194,38 @@ public class Player implements Serializable {
 
             FileOutputStream fileOut = new FileOutputStream("saves/" + player.getName() + ".ser");
             ObjectOutputStream out = new ObjectOutputStream(fileOut);
+
             out.writeObject(player);
+
             out.close();
             fileOut.close();
+            player.sendMessage("存档成功！");
         } catch (IOException e) {
+            player.sendMessage("存档失败：" + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public static Player loadPlayer(String name) {
         try {
-            FileInputStream fileIn = new FileInputStream("saves/" + name + ".ser");
+            File f = new File("saves/" + name + ".ser");
+            if (!f.exists()) {
+                return new Player(name);
+            }
+
+            FileInputStream fileIn = new FileInputStream(f);
             ObjectInputStream in = new ObjectInputStream(fileIn);
+
             Player p = (Player) in.readObject();
+
+            if (p.getCurrentMap() == null) {
+                p.setCurrentMap("home");
+            }
+
             in.close();
             fileIn.close();
             return p;
         } catch (Exception e) {
-            e.printStackTrace();
             return new Player(name);
         }
     }

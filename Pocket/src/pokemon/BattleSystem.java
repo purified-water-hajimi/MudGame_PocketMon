@@ -11,11 +11,14 @@ public class BattleSystem {
     private BufferedReader in;
 
     private boolean battleActive;
+    private boolean runaway = false;
 
-    // 战斗平衡性参数
-    private static final double BASE_DODGE_CHANCE = 0.10; // 降低一点闪避率，不然打得太慢
+    private boolean isTraining = false;
+
+
+    private static final double BASE_DODGE_CHANCE = 0.10;
     private static final double BASE_CRITICAL_CHANCE = 0.12;
-    private static final double CRITICAL_MULTIPLIER = 1.5; // 暴击伤害从 1.25 提升到 1.5
+    private static final double CRITICAL_MULTIPLIER = 1.5;
     private static final double ENEMY_HEAL_CHANCE = 0.15;
 
     public BattleSystem(Player player, PocketMon wildPokemon, PrintWriter out, BufferedReader in) {
@@ -24,6 +27,11 @@ public class BattleSystem {
         this.out = out;
         this.in = in;
         this.battleActive = true;
+    }
+
+
+    public void setTrainingMode(boolean isTraining) {
+        this.isTraining = isTraining;
     }
 
     private void sleep(int milliseconds) {
@@ -40,14 +48,22 @@ public class BattleSystem {
 
     public void startBattle() {
         send("\n=================================");
-        send(" 野生宝可梦出现了！");
+        if (isTraining) {
+            send("  ⚔  开始战斗训练！  ⚔");
+        } else {
+            send("  ⚠  野生宝可梦出现了！  ⚠");
+        }
         send("=================================");
         sleep(800);
-        send("野生的 " + wildPokemon.getBattleStatus() + " 冲了过来！");
+
+        if (isTraining) {
+            send("面前是 " + wildPokemon.getBattleStatus() + " (模拟对手)");
+        } else {
+            send("野生的 " + wildPokemon.getBattleStatus() + " 冲了过来！");
+        }
         sleep(800);
 
         PocketMon playerPokemon = player.getFirstPokemon();
-        // 检查首位精灵是否存活，如果晕了就找下一个活着的
         if (playerPokemon == null || playerPokemon.isFainted()) {
             playerPokemon = null;
             for(PocketMon pm : player.getTeam()) {
@@ -112,10 +128,11 @@ public class BattleSystem {
             case "3":
                 if (attemptEscape()) {
                     send("你成功从战斗中逃脱了！");
+                    runaway = true;
                     battleActive = false;
                     return;
                 } else {
-                    send("逃跑失败！被野生宝可梦拦住了！");
+                    send("逃跑失败！被对手拦住了！");
                     sleep(800);
                 }
                 break;
@@ -148,7 +165,7 @@ public class BattleSystem {
 
             int choice = Integer.parseInt(input.trim());
             if (choice == 0) {
-                playerTurn(playerPokemon); // 返回上一级
+                playerTurn(playerPokemon);
                 return;
             }
 
@@ -209,7 +226,6 @@ public class BattleSystem {
             if (choice > 0 && choice <= usableItems.size()) {
                 String itemName = usableItems.get(choice - 1);
                 boolean success = useBattleItem(itemName, playerPokemon);
-                // 只有成功使用了道具，回合才结束；否则重新选
                 if (!success) {
                     useItemMenu(playerPokemon);
                 }
@@ -226,7 +242,7 @@ public class BattleSystem {
     private boolean isBattleItem(String itemName) {
         return itemName.equals("伤药") || itemName.equals("好伤药") ||
                 itemName.equals("攻击强化剂") || itemName.equals("防御强化剂") ||
-                itemName.equals("精灵球"); // 预留精灵球逻辑
+                itemName.equals("精灵球");
     }
 
     private boolean useBattleItem(String itemName, PocketMon targetPokemon) {
@@ -289,27 +305,26 @@ public class BattleSystem {
         send("\n--- 对手回合 (" + wildPokemon.getName() + ") ---");
         sleep(600);
 
-        // 简单的AI：血量低时概率回血
         if (Math.random() < ENEMY_HEAL_CHANCE && wildPokemon.getCurrentHp() < wildPokemon.getMaxHp() / 3) {
-            send("野生 " + wildPokemon.getName() + " 似乎在休息...");
+            send("对手 " + wildPokemon.getName() + " 似乎在休息...");
             sleep(600);
             int healAmount = wildPokemon.getMaxHp() / 4;
             wildPokemon.heal(healAmount);
-            send("野生 " + wildPokemon.getName() + " 恢复了 " + healAmount + " HP！");
+            send("对手 " + wildPokemon.getName() + " 恢复了 " + healAmount + " HP！");
             sleep(600);
             return;
         }
 
         Skill enemySkill = selectEnemySkill();
         if (enemySkill != null) {
-            send("野生 " + wildPokemon.getName() + " 使用了 " + enemySkill.getName() + "！");
-            enemySkill.use(); // 扣除PP
+            send("对手 " + wildPokemon.getName() + " 使用了 " + enemySkill.getName() + "！");
+            enemySkill.use();
             sleep(500);
-            executeAttack(wildPokemon, enemySkill, playerPokemon, "野生 " + wildPokemon.getName());
+            executeAttack(wildPokemon, enemySkill, playerPokemon, "对手 " + wildPokemon.getName());
         } else {
-            send("野生 " + wildPokemon.getName() + " 使用了 猛撞！");
+            send("对手 " + wildPokemon.getName() + " 使用了 猛撞！");
             sleep(500);
-            executeBasicAttack(wildPokemon, playerPokemon, "野生 " + wildPokemon.getName());
+            executeBasicAttack(wildPokemon, playerPokemon, "对手 " + wildPokemon.getName());
         }
     }
 
@@ -335,7 +350,6 @@ public class BattleSystem {
         int damage = calculateDamage(attacker, skill, defender);
         defender.takeDamage(damage);
         send(">> 造成了 " + damage + " 点伤害！");
-
 
         sleep(700);
     }
@@ -387,15 +401,22 @@ public class BattleSystem {
 
     private void battleWin(PocketMon playerPokemon) {
         send("\n============================");
-        send(" 胜 利！");
+        send("   胜 利！ ");
         send("============================");
-        send("野生 " + wildPokemon.getName() + " 倒下了！");
+        send("对手 " + wildPokemon.getName() + " 倒下了！");
         sleep(700);
+
+        // 【新增】如果是训练模式，直接结束，不走野怪的奖励流程
+        // 因为 ClientHandler 里 handleTrain 会单独计算训练奖励
+        if (isTraining) {
+            send(">> 训练目标达成！");
+            battleActive = false;
+            return;
+        }
 
         int expGain = wildPokemon.getLevel() * 15 + 10;
         playerPokemon.gainExp(expGain);
         send(">> " + playerPokemon.getName() + " 获得了 " + expGain + " 点经验值。");
-
 
         int expToNext = playerPokemon.getExpToNextLevel();
         if (expToNext > 0) {
@@ -406,7 +427,7 @@ public class BattleSystem {
         sleep(600);
 
         int moneyGain = wildPokemon.getLevel() * 20;
-        player.addMoney(moneyGain); // 使用 Player 类的新方法
+        player.addMoney(moneyGain);
         send(">> 你拾取了 " + moneyGain + " 元。");
         send("当前金钱: " + player.getMoney() + "元");
 
@@ -416,19 +437,28 @@ public class BattleSystem {
 
     private void battleLose(PocketMon playerPokemon) {
         send("\n============================");
-        send("  失 败 ... ");
-        send("============================");
+
+        if (isTraining) {
+            send("  训练结束 ");
+            send("============================");
+            send(playerPokemon.getName() + " 失去了战斗能力。");
+            send("点到为止！你停止了训练。");
+            send("宝可梦在场边接受治疗...");
+            player.healTeam();
+            sleep(1500);
+            battleActive = false;
+            return;
+        }
+
         send(playerPokemon.getName() + " 倒下了！");
         sleep(700);
         send("你眼前一黑...");
         sleep(1000);
 
-        // 失败惩罚：扣钱并治疗
-        int lostMoney = player.getMoney() / 2;
-        player.addMoney(-lostMoney); // 扣除一半金钱
-        player.healTeam(); // 自动送去治疗
+        int lostMoney = 200;
+        player.addMoney(-lostMoney);
 
-        send("你慌忙逃到了安全的地方，并在精灵中心恢复了所有宝可梦。");
+        send("你慌忙逃到了安全的地方...");
         send("在逃跑过程中不小心遗失了 " + lostMoney + " 元...");
         sleep(1500);
         battleActive = false;

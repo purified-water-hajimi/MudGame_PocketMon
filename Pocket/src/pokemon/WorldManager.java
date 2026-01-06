@@ -75,7 +75,7 @@ public class WorldManager {
                 "pokemart",
                 "友好商店",
                 "货架上摆满了各种道具。\n" +
-                        "提示：你可以输入 shop 查看商品，buy [物品名] 购买。\n" +
+                        "提示：你可以输入 shop 查看商品，buy [物品名] [数量]购买。\n" +
                         "向东回常青市(east)。"
         );
         rooms.put("pokemart", pokemart);

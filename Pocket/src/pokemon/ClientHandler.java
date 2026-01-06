@@ -4,11 +4,16 @@ import java.io.*;
 import java.net.*;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.*;
 
 public class ClientHandler implements Runnable {
     public static final Map<String, ClientHandler> onlinePlayers = new ConcurrentHashMap<>();
 
+    // 【修改】删除了 private boolean runaway = false; 因为不需要了
+    private Timer duelTimer;
+    private boolean isDuelInitiator = false;
     private final Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -79,6 +84,11 @@ public class ClientHandler implements Runnable {
                 input = input.trim();
                 if (input.isEmpty()) continue;
 
+                if (activeBattle == null && duelTarget != null && isDuelInitiator) {
+                    handleCancelDuel(false);
+                    out.println("(由于进行了其他操作，挑战请求已自动取消)");
+                }
+
                 if (activeBattle != null) {
                     activeBattle.handleInput(this, input);
                 } else {
@@ -93,6 +103,7 @@ public class ClientHandler implements Runnable {
                 onlinePlayers.remove(player.getName());
                 if (currentRoom != null) currentRoom.removePlayer(player);
                 Player.savePlayer(player);
+                handleCancelDuel(false);
             }
             try { socket.close(); } catch (IOException e) {}
         }
@@ -199,7 +210,6 @@ public class ClientHandler implements Runnable {
                     handleDuelRequest(parts[1]);
                 }
                 break;
-
             case "accept":
             case "yes":
             case "y":
@@ -210,7 +220,9 @@ public class ClientHandler implements Runnable {
             case "no":
                 handleDuelResponse(false);
                 break;
-
+            case "cancel":
+                handleCancelDuel(true);
+                break;
             case "n": case "north": handleMove("north"); break;
             case "s": case "south": handleMove("south"); break;
             case "e": case "east": handleMove("east"); break;
@@ -296,10 +308,27 @@ public class ClientHandler implements Runnable {
                 if (input.startsWith("use ")) {
                     if (parts.length > 1) player.useItem(parts[1]);
                     else out.println("指令格式错误，请输入: use 物品名");
-                } else if (input.startsWith("buy ")) {
-                    if (parts.length > 1) buyItem(parts[1]);
-                    else out.println("指令格式错误，请输入: buy 物品名");
-                } else {
+                }
+                else if (input.startsWith("buy ")) {
+                    if (parts.length > 1) {
+                        String itemName = parts[1];
+                        int count = 1;
+
+                        if (parts.length > 2) {
+                            try {
+                                count = Integer.parseInt(parts[2]);
+                            } catch (NumberFormatException e) {
+                                out.println("数量输入错误，将默认购买 1 个。");
+                            }
+                        }
+
+                        buyItem(itemName, count);
+                    } else {
+                        out.println("指令格式错误，请输入: buy [物品名] [数量]");
+                        out.println("例如: buy 伤药 5");
+                    }
+                }
+                else {
                     out.println("未知指令。输入 'help' 查看帮助。");
                 }
                 break;
@@ -321,9 +350,14 @@ public class ClientHandler implements Runnable {
         int lvl = Math.max(1, my.getLevel());
         PocketMon spar = new PocketMon("练习木桩", PocketMon.Type.NORMAL, lvl);
 
-        triggerBattle(spar);
+        out.println("开始与 " + spar.getName() + " 进行模拟对战！");
 
-        if (!my.isFainted()) {
+        BattleSystem battle = new BattleSystem(player, spar, out, in);
+        battle.setTrainingMode(true);
+
+        battle.startBattle();
+
+        if (!my.isFainted() && spar.isFainted()) {
             int bonusMoney = 10 + lvl * 2;
             int bonusExp   = 5 + lvl * 2;
 
@@ -333,6 +367,8 @@ public class ClientHandler implements Runnable {
             out.println("训练奖励：+" + bonusMoney + " 金币，+" + bonusExp + " 经验。");
             out.println("(提示) 可继续 train 训练，或 go west 回家。");
             Player.savePlayer(player);
+        }else if (!my.isFainted() && !spar.isFainted()) {
+            out.println("训练未完成，无法获得奖励。");
         }
     }
 
@@ -356,19 +392,50 @@ public class ClientHandler implements Runnable {
             return;
         }
 
-        if (targetHandler.activeBattle != null || targetHandler.duelTarget != null) {
-            out.println("对方正忙，稍后再试。");
-            return;
-        }
-
         if (targetHandler.currentRoom != this.currentRoom) {
             out.println("你必须和他在同一个房间才能发起挑战！他在: " + targetHandler.currentRoom.getName());
             return;
         }
 
+        synchronized (targetHandler) {
+            if (targetHandler.activeBattle != null || targetHandler.duelTarget != null) {
+                out.println("对方正忙，稍后再试。");
+                return;
+            }
+            targetHandler.receiveDuelRequest(this);
+        }
+
         this.duelTarget = targetHandler;
-        targetHandler.receiveDuelRequest(this);
+        this.isDuelInitiator = true;
+
         out.println("已向 " + targetName + " 发起挑战！等待对方接受...");
+        out.println("(30秒内未响应将自动取消，输入任意指令可撤回)");
+
+        stopDuelTimer();
+        duelTimer = new Timer();
+        duelTimer.schedule(new TimerTask(){
+            @Override
+            public void run() {
+                if (activeBattle == null && duelTarget != null) {
+                    try {
+                        duelTarget.sendMessage("\n>> 响应超时，挑战请求已失效。");
+
+                        if (duelTarget.duelTarget == ClientHandler.this) {
+                            duelTarget.duelTarget = null;
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    out.println("\n>> 对方响应超时，挑战已自动取消。");
+                    out.print("> ");
+                    out.flush();
+
+                    stopDuelTimer();
+                    isDuelInitiator = false;
+                    duelTarget = null;
+                }
+            }
+        }, 30000);
     }
 
     public void receiveDuelRequest(ClientHandler challenger) {
@@ -376,6 +443,13 @@ public class ClientHandler implements Runnable {
         out.println("\n收到挑战！");
         out.println("玩家 [" + challenger.getPlayer().getName() + "] 想和你 PK！");
         out.println("输入 'yes' (接受) 或 'no' (拒绝)");
+    }
+
+    public void stopDuelTimer() {
+        if (duelTimer != null) {
+            duelTimer.cancel();
+            duelTimer = null;
+        }
     }
 
     private void handleDuelResponse(boolean accept) {
@@ -388,6 +462,10 @@ public class ClientHandler implements Runnable {
             out.println("你接受了挑战！");
             duelTarget.sendMessage(player.getName() + " 接受了你的挑战！");
 
+            duelTarget.stopDuelTimer();
+            duelTarget.isDuelInitiator = false;
+            this.stopDuelTimer();
+
             PvPBattle battle = new PvPBattle(duelTarget, this);
 
             this.activeBattle = battle;
@@ -399,7 +477,11 @@ public class ClientHandler implements Runnable {
         } else {
             out.println("你拒绝了挑战。");
             duelTarget.sendMessage(player.getName() + " 拒绝了你的挑战。");
+
+            duelTarget.stopDuelTimer();
+            duelTarget.isDuelInitiator = false;
             duelTarget.duelTarget = null;
+
             this.duelTarget = null;
         }
     }
@@ -422,20 +504,26 @@ public class ClientHandler implements Runnable {
         out.println("4. 经验糖果   - 增加100经验| 价格: 300元");
         out.println("5. 攻击强化剂 - 提升攻击力 | 价格: 400元");
         out.println("6. 防御强化剂 - 提升防御力 | 价格: 400元");
-        out.println("\n使用 'buy [物品名]' 来购买。余额: " + player.getMoney());
+        out.println("\n使用 'buy [物品名] [数量]' 来购买。余额: " + player.getMoney());
     }
 
-    private void buyItem(String itemName) {
+    private void buyItem(String itemName, int count) {
+        int price = 0;
+
         switch (itemName) {
-            case "伤药": player.buyItem("伤药", 200); break;
-            case "好伤药": player.buyItem("好伤药", 500); break;
-            case "精灵球": player.buyItem("精灵球", 200); break;
-            case "经验糖果": player.buyItem("经验糖果", 300); break;
-            case "攻击强化剂": player.buyItem("攻击强化剂", 400); break;
-            case "防御强化剂": player.buyItem("防御强化剂", 400); break;
-            default: out.println("店员：没有这种商品哦。"); return;
+            case "伤药": price = 200; break;
+            case "好伤药": price = 500; break;
+            case "精灵球": price = 200; break;
+            case "经验糖果": price = 300; break;
+            case "攻击强化剂": price = 400; break;
+            case "防御强化剂": price = 400; break;
+            default:
+                out.println("店员：不好意思，我们要么没货，要么没这个东西。");
+                return;
         }
-        out.println("(系统) 正在尝试购买 " + itemName + "...");
+
+        out.println("(系统) 正在尝试购买 " + count + " 个 " + itemName + "...");
+        player.buyItem(itemName, price, count);
         Player.savePlayer(player);
     }
 
@@ -460,6 +548,29 @@ public class ClientHandler implements Runnable {
             printRoomInfo();
 
             checkRandomEncounter();
+        }
+    }
+
+    private void handleCancelDuel(boolean printMessage) {
+        stopDuelTimer();
+        this.isDuelInitiator = false;
+
+        if (this.duelTarget != null) {
+            this.duelTarget.sendMessage("\n>> " + player.getName() + " 取消了挑战请求。");
+
+            if (this.duelTarget.duelTarget == this) {
+                this.duelTarget.duelTarget = null;
+            }
+
+            this.duelTarget = null;
+
+            if (printMessage) {
+                out.println("你取消了挑战请求。");
+            }
+        } else {
+            if (printMessage) {
+                out.println("当前没有正在进行的挑战请求。");
+            }
         }
     }
 
@@ -489,11 +600,6 @@ public class ClientHandler implements Runnable {
         BattleSystem battle = new BattleSystem(player, wildPokemon, out, in);
         battle.startBattle();
 
-        if (!player.getFirstPokemon().isFainted()) {
-            out.println("战斗结束，你赢了！");
-        } else {
-            out.println("你输了，眼前一黑...");
-        }
         Player.savePlayer(player);
     }
 
@@ -509,10 +615,11 @@ public class ClientHandler implements Runnable {
         out.println("train          - 训练镇练习战斗（训练后额外奖励）");
         out.println("heal           - 在宝可梦中心治疗");
         out.println("shop           - 查看商店商品 (在商店中)");
-        out.println("buy [物品名]    - 购买商品 (在商店中，购买后有提示)");
+        out.println("buy [物品名] [数量] - 购买商品");
         out.println("work           - 打工赚钱 (在打工场所)");
         out.println("who            - 查看在线玩家");
         out.println("duel [玩家名]   - 向玩家发起 PvP 挑战");
+        out.println("cancel         - 取消发起的挑战");
         out.println("accept/decline - 接受/拒绝挑战");
         out.println("save           - 保存存档");
         out.println("load           - 读取存档（覆盖当前进度）");

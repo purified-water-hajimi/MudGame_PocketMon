@@ -1,6 +1,8 @@
 package pokemon;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PvPBattle {
     private ClientHandler p1; // 挑战者
@@ -10,8 +12,18 @@ public class PvPBattle {
     public PvPBattle(ClientHandler p1, ClientHandler p2) {
         this.p1 = p1;
         this.p2 = p2;
-        this.currentTurn = p1; // 挑战者先手
+        this.currentTurn = p1;
     }
+
+    private enum TurnState {
+        ACTION_SELECT,
+        SKILL_SELECT,
+        ITEM_SELECT
+    }
+
+    private TurnState currentState = TurnState.ACTION_SELECT;
+
+    private List<String> tempItemList = new ArrayList<>();
 
     public void start() {
         broadcast("\n === PK 开始！=== ");
@@ -20,6 +32,7 @@ public class PvPBattle {
         showStatus(p1);
         showStatus(p2);
 
+        currentState = TurnState.ACTION_SELECT;
         promptTurn();
     }
 
@@ -29,9 +42,46 @@ public class PvPBattle {
             return;
         }
 
-        if (input.equalsIgnoreCase("run") || input.equals("逃跑")) {
-            broadcast( sender.getPlayer().getName() + " 认输逃跑了！");
-            endBattle(sender == p1 ? p2 : p1);
+        switch (currentState) {
+            case ACTION_SELECT:
+                handleActionSelect(sender, input);
+                break;
+            case SKILL_SELECT:
+                handleSkillSelect(sender, input);
+                break;
+            case ITEM_SELECT:
+                handleItemSelect(sender, input);
+                break;
+        }
+    }
+
+    private void handleActionSelect(ClientHandler sender, String input) {
+        switch (input) {
+            case "1":
+                currentState = TurnState.SKILL_SELECT;
+                promptSkillMenu(sender);
+                break;
+            case "2":
+                currentState = TurnState.ITEM_SELECT;
+                promptBagMenu(sender);
+                break;
+            case "3":
+            case "run":
+            case "逃跑":
+                broadcast(sender.getPlayer().getName() + " 认输逃跑了！");
+                endBattle(sender == p1 ? p2 : p1);
+                break;
+            default:
+                sender.sendMessage("无效选择。请输入: 1(攻击), 2(物品), 3(逃跑)");
+                promptTurn();
+                break;
+        }
+    }
+
+    private void handleSkillSelect(ClientHandler sender, String input) {
+        if (input.equals("0")) {
+            currentState = TurnState.ACTION_SELECT;
+            promptTurn();
             return;
         }
 
@@ -42,13 +92,99 @@ public class PvPBattle {
 
             if (skillIndex >= 0 && skillIndex < skills.size()) {
                 Skill chosenSkill = skills.get(skillIndex);
+
+                if (chosenSkill.getPp() <= 0) {
+                    sender.sendMessage("该技能 PP 不足！");
+                    return;
+                }
+
+                chosenSkill.use();
                 ClientHandler target = (sender == p1) ? p2 : p1;
                 performAttack(sender, target, chosenSkill);
             } else {
-                sender.sendMessage("技能编号错误！请输入 1~" + skills.size());
+                sender.sendMessage("无效的技能编号。输入 0 返回。");
             }
         } catch (NumberFormatException e) {
-            sender.sendMessage("请输入技能编号 (例如: 1) 或输入 run 认输。");
+            sender.sendMessage("请输入数字！");
+        }
+    }
+
+    private void handleItemSelect(ClientHandler sender, String input) {
+        if (input.equals("0")) {
+            currentState = TurnState.ACTION_SELECT;
+            promptTurn();
+            return;
+        }
+
+        try {
+            int index = Integer.parseInt(input) - 1;
+            if (index >= 0 && index < tempItemList.size()) {
+                String itemName = tempItemList.get(index);
+                performItemUse(sender, itemName);
+            } else {
+                sender.sendMessage("无效的物品编号。输入 0 返回。");
+            }
+        } catch (NumberFormatException e) {
+            sender.sendMessage("请输入数字！");
+        }
+    }
+
+    private void performItemUse(ClientHandler user, String itemName) {
+        Player p = user.getPlayer();
+        PocketMon pm = p.getFirstPokemon();
+
+        if (!p.getBag().containsKey(itemName) || p.getBag().get(itemName) <= 0) {
+            user.sendMessage("道具数量不足！");
+            promptBagMenu(user);
+            return;
+        }
+
+        boolean used = false;
+        String effectMsg = "";
+
+        switch (itemName) {
+            case "伤药":
+                if (pm.getCurrentHp() >= pm.getMaxHp()) {
+                    user.sendMessage("HP已经是满的了！");
+                    return;
+                }
+                pm.heal(20);
+                effectMsg = "恢复了 20 点 HP。";
+                used = true;
+                break;
+            case "好伤药":
+                if (pm.getCurrentHp() >= pm.getMaxHp()) {
+                    user.sendMessage("HP已经是满的了！");
+                    return;
+                }
+                pm.heal(50);
+                effectMsg = "恢复了 50 点 HP。";
+                used = true;
+                break;
+            case "攻击强化剂":
+                pm.boostAttack(5);
+                effectMsg = "攻击力提升了！";
+                used = true;
+                break;
+            case "防御强化剂":
+                pm.boostDefense(5);
+                effectMsg = "防御力提升了！";
+                used = true;
+                break;
+            default:
+                user.sendMessage("这个道具无法在 PvP 中使用。");
+                return;
+        }
+
+        if (used) {
+            Map<String, Integer> bag = p.getBag();
+            bag.put(itemName, bag.get(itemName) - 1);
+            if (bag.get(itemName) <= 0) bag.remove(itemName);
+
+            broadcast("\n💊 " + p.getName() + " 使用了 [" + itemName + "] !");
+            broadcast(">> " + pm.getName() + " " + effectMsg);
+
+            switchTurn();
         }
     }
 
@@ -62,10 +198,8 @@ public class PvPBattle {
         }
 
         double multiplier = getTypeMultiplier(skill.getType(), enemyPoke.getType());
-
         int baseDamage = (skill.getPower() + myPoke.getAttack()) - enemyPoke.getDefense();
         if (baseDamage < 1) baseDamage = 1;
-
         int finalDamage = (int) (baseDamage * multiplier);
 
         enemyPoke.takeDamage(finalDamage);
@@ -83,19 +217,22 @@ public class PvPBattle {
 
         if (enemyPoke.isFainted()) {
             broadcast("\n" + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
-            endBattle(attacker); // 结束战斗
+            endBattle(attacker);
         } else {
-            // 只有战斗还在继续时，才交换回合、打印状态、提示下一步
-            currentTurn = defender;
-
-            broadcast("--------------------------------");
-            broadcast(myPoke.getName() + ": " + myPoke.getHp() + "/" + myPoke.getMaxHp() + " HP");
-            broadcast(enemyPoke.getName() + ": " + enemyPoke.getHp() + "/" + enemyPoke.getMaxHp() + " HP");
-            broadcast("--------------------------------");
-
-            promptTurn();
+            switchTurn();
         }
     }
+
+    private void switchTurn() {
+        ClientHandler nextPlayer = (currentTurn == p1) ? p2 : p1;
+        currentTurn = nextPlayer;
+        currentState = TurnState.ACTION_SELECT;
+
+        showStatus(p1);
+
+        promptTurn();
+    }
+
 
     private double getTypeMultiplier(PocketMon.Type skillType, PocketMon.Type defType) {
         switch (skillType) {
@@ -131,15 +268,52 @@ public class PvPBattle {
 
         waitingPlayer.sendMessage("等待 " + activePlayer.getPlayer().getName() + " 行动...");
 
-        activePlayer.sendMessage("\n轮到你了！请选择技能 (输入数字):");
-        List<Skill> skills = activePlayer.getPlayer().getFirstPokemon().getSkills();
+        activePlayer.sendMessage("\n--- 你的回合 (" + activePlayer.getPlayer().getFirstPokemon().getName() + ") ---");
+        activePlayer.sendMessage("1. 攻击 (Attack)");
+        activePlayer.sendMessage("2. 物品 (Bag)");
+        activePlayer.sendMessage("3. 逃跑 (Run)");
+        activePlayer.sendMessage("请选择行动 [1-3]:");
+    }
+
+    private void promptSkillMenu(ClientHandler handler) {
+        handler.sendMessage("\n--- 选择技能 ---");
+        List<Skill> skills = handler.getPlayer().getFirstPokemon().getSkills();
 
         for (int i = 0; i < skills.size(); i++) {
             Skill s = skills.get(i);
-            activePlayer.sendMessage((i + 1) + ". " + s.getName() +
-                    " [威力:" + s.getPower() + " | " + s.getType() + "]");
+            handler.sendMessage((i + 1) + ". " + s.getName() +
+                    " [PP:" + s.getPp() + "/" + s.getMaxPp() + " | 威力:" + s.getPower() + "]");
         }
-        activePlayer.sendMessage("输入 'run' 认输");
+        handler.sendMessage("0. 返回上一级");
+    }
+
+    private void promptBagMenu(ClientHandler handler) {
+        handler.sendMessage("\n--- 选择道具 ---");
+        Map<String, Integer> bag = handler.getPlayer().getBag();
+
+        tempItemList.clear();
+        int index = 1;
+
+        for (String itemName : bag.keySet()) {
+            int count = bag.get(itemName);
+            // 过滤出战斗可用道具
+            if (count > 0 && isBattleItem(itemName)) {
+                handler.sendMessage(index + ". " + itemName + " (x" + count + ")");
+                tempItemList.add(itemName);
+                index++;
+            }
+        }
+
+        if (tempItemList.isEmpty()) {
+            handler.sendMessage("（没有可用的战斗道具）");
+        }
+
+        handler.sendMessage("0. 返回上一级");
+    }
+
+    private boolean isBattleItem(String name) {
+        return name.equals("伤药") || name.equals("好伤药") ||
+                name.equals("攻击强化剂") || name.equals("防御强化剂");
     }
 
     private void endBattle(ClientHandler winner) {
@@ -158,7 +332,6 @@ public class PvPBattle {
             broadcast("\n战斗异常结束。");
         }
 
-        // 分别结束双方的战斗状态
         p1.endPvP();
         p2.endPvP();
     }
@@ -166,7 +339,8 @@ public class PvPBattle {
     private void showStatus(ClientHandler handler) {
         PocketMon pm = handler.getPlayer().getFirstPokemon();
         if (pm != null) {
-            broadcast(handler.getPlayer().getName() + " 派出了 Lv." + pm.getLevel() + " " + pm.getName());
+            broadcast(handler.getPlayer().getName() + " 的 " + pm.getName() +
+                    " [HP: " + pm.getCurrentHp() + "/" + pm.getMaxHp() + "]");
         }
     }
 

@@ -141,15 +141,24 @@ public class Player implements Serializable {
         sendMessage("所有宝可梦已完全恢复！");
     }
 
-    public void buyItem(String itemName, int price) {
-        if (money < price) {
-            sendMessage("金钱不足！需要" + price + "元，但你只有" + money + "元。");
+    public void buyItem(String itemName, int price, int count) {
+        if (count <= 0) {
+            sendMessage("购买数量必须大于 0！");
             return;
         }
-        money -= price;
-        bag.put(itemName, bag.getOrDefault(itemName, 0) + 1);
-        sendMessage("购买了 " + itemName + "！花费" + price + "元");
-        sendMessage("剩余金钱: " + money + "元");
+
+        int totalCost = price * count;
+
+        if (money < totalCost) {
+            sendMessage("金钱不足！购买 " + count + " 个 " + itemName + " 需要 " + totalCost + "元，但你只有 " + money + "元。");
+            return;
+        }
+
+        money -= totalCost;
+        bag.put(itemName, bag.getOrDefault(itemName, 0) + count);
+
+        sendMessage("购买成功！获得了 " + itemName + " x" + count);
+        sendMessage("花费: " + totalCost + "元 | 剩余金钱: " + money + "元");
     }
 
     public void work() {

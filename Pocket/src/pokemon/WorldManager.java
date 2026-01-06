@@ -15,82 +15,188 @@ public class WorldManager {
         rooms.put("home", new Room("home", "真新镇 - 你的家",
                 "这是你的房间，阳光透过窗户洒进来。墙上贴着宝可梦海报。\n楼下通往 east。"));
 
-        // 真新镇
-        rooms.put("pallet_town", new Room("pallet_town", "真新镇",
-                "一个宁静的小镇。空气中弥漫着青草的香气。\n西边是你家(west)，北边通往1号道路(north)，\n东边是大木博士的研究所(east)，南边通往常青森林(south)。"));
+        Room home = new Room(
+                "home",
+                "家",
+                "你在自己的房间里，窗外阳光明媚。\n" +
+                        "向北是 1号道路(north)，向东是训练镇(east)。"
+        );
+        rooms.put("home", home);
 
-        // 1号道路
-        Room route1 = new Room("route1", "1号道路",
-                "连接真新镇和常青市的道路，两旁是茂盛的草丛。野生宝可梦在这里出没。\n南边回真新镇(south)，北边通往常青市(north)。");
-        route1.addWildPokemon(new PocketMon("绿毛虫", PocketMon.Type.BUG, 3), 1.0);
-        route1.addWildPokemon(new PocketMon("波波", PocketMon.Type.FLYING, 4), 1.0);
-        route1.addWildPokemon(new PocketMon("小拉达", PocketMon.Type.NORMAL, 3), 1.0);
-        rooms.put("route1", route1);
+        // 训练镇：专门练习战斗的地方，不放野怪
+        Room trainingTown = new Room(
+                "training_town", "训练镇",
+                "这里聚集了许多训练家，是专门练习战斗的地方。\n" +
+                        "这里不会随机遇到野生宝可梦。\n" +
+                        "向西回家(west)。"
+        );
+        rooms.put("training_town", trainingTown);
 
-        // 大木研究所
-        rooms.put("lab", new Room("lab", "大木研究所",
-                "大木博士的研究所。各种研究设备摆放整齐，墙上挂着宝可梦的解剖图。\n西边回真新镇(west)。"));
+        Room route1 = new Room(
+                "route_1",
+                "1号道路",
+                "道路两旁有草丛，可能会遇到野生宝可梦。\n" +
+                        "向南回家(south)，向北是常青市(north)，向东是常青森林(east)。"
+        );
+        route1.addWildPokemon(new PocketMon("波波", PocketMon.Type.FLYING, 2), 1.0);
+        route1.addWildPokemon(new PocketMon("小拉达", PocketMon.Type.NORMAL, 2), 1.0);
+        rooms.put("route_1", route1);
 
-        // 常青森林
-        Room viridianForest = new Room("viridian_forest", "常青森林",
-                "茂密的森林，阳光透过树叶洒下斑驳的光点。这里是虫系宝可梦的天堂。\n北边回真新镇(north)。");
+        Room viridianForest = new Room(
+                "viridian_forest",
+                "常青森林",
+                "茂密的森林，阳光透过树叶洒下斑驳的光点。这里是虫系宝可梦的天堂。\n" +
+                        "向西回1号道路(west)。"
+        );
         viridianForest.addWildPokemon(new PocketMon("绿毛虫", PocketMon.Type.BUG, 2), 1.0);
         viridianForest.addWildPokemon(new PocketMon("独角虫", PocketMon.Type.BUG, 2), 1.0);
         viridianForest.addWildPokemon(new PocketMon("波波", PocketMon.Type.FLYING, 3), 1.0);
         rooms.put("viridian_forest", viridianForest);
 
-        // 常青市
-        rooms.put("viridian_city", new Room("viridian_city", "常青市",
-                "一个繁华的城市。这里有各种便利设施。\n南边回1号道路(south)，东边是宝可梦中心(east)，\n西边是友好商店(west)，北边是打工场所(north)。"));
+        Room viridianCity = new Room(
+                "viridian_city",
+                "常青市",
+                "一个繁华的城市。这里有各种便利设施。\n" +
+                        "南边回1号道路(south)，东边是宝可梦中心(east)，\n" +
+                        "西边是友好商店(west)，北边是打工场所(north)。"
+        );
+        rooms.put("viridian_city", viridianCity);
 
-        // 宝可梦中心
-        rooms.put("pokemon_center", new Room("pokemon_center", "宝可梦中心",
-                "乔伊小姐微笑着站在柜台后。这里可以免费治疗宝可梦。\n使用 'heal' 命令恢复所有宝可梦。\n西边回常青市(west)。"));
+        Room pokemonCenter = new Room(
+                "pokemon_center",
+                "宝可梦中心",
+                "乔伊小姐微笑着站在柜台后。这里可以免费治疗宝可梦。\n" +
+                        "提示：你可以输入 heal 来治疗。\n" +
+                        "向西回常青市(west)。"
+        );
+        rooms.put("pokemon_center", pokemonCenter);
 
-        // 友好商店
-        rooms.put("pokemart", new Room("pokemart", "友好商店",
-                "商店里摆满了各种宝可梦道具。\n使用 'shop' 命令查看商品，'buy [道具名]' 购买。\n东边回常青市(east)。"));
+        Room pokemart = new Room(
+                "pokemart",
+                "友好商店",
+                "货架上摆满了各种道具。\n" +
+                        "提示：你可以输入 shop 查看商品，buy [物品名] 购买。\n" +
+                        "向东回常青市(east)。"
+        );
+        rooms.put("pokemart", pokemart);
 
-        // 打工场所
-        rooms.put("work_place", new Room("work_place", "打工场所",
-                "这里可以打工赚钱。使用 'work' 命令赚取金钱。\n南边回常青市(south)。"));
+        Room workPlace = new Room(
+                "work_place",
+                "打工场所",
+                "这里可以通过工作赚取金币。\n" +
+                        "提示：你可以输入 work 开始打工。\n" +
+                        "向南回常青市(south)。"
+        );
+        rooms.put("work_place", workPlace);
     }
 
     private static void setupRoomConnections() {
-        // 家
-        rooms.get("home").addExit("east", "pallet_town");
-        // 真新镇
-        rooms.get("pallet_town").addExit("west", "home");
-        rooms.get("pallet_town").addExit("north", "route1");
-        rooms.get("pallet_town").addExit("east", "lab");
-        rooms.get("pallet_town").addExit("south", "viridian_forest");
-        // 1号道路
-        rooms.get("route1").addExit("south", "pallet_town");
-        rooms.get("route1").addExit("north", "viridian_city");
-        // 研究所
-        rooms.get("lab").addExit("west", "pallet_town");
-        // 常青森林
-        rooms.get("viridian_forest").addExit("north", "pallet_town");
-        // 常青市
-        rooms.get("viridian_city").addExit("south", "route1");
+        rooms.get("home").addExit("north", "route_1");
+        rooms.get("route_1").addExit("south", "home");
+
+        rooms.get("home").addExit("east", "training_town");
+        rooms.get("training_town").addExit("west", "home");
+
+        rooms.get("route_1").addExit("north", "viridian_city");
+        rooms.get("viridian_city").addExit("south", "route_1");
+
+        rooms.get("route_1").addExit("east", "viridian_forest");
+        rooms.get("viridian_forest").addExit("west", "route_1");
+
         rooms.get("viridian_city").addExit("east", "pokemon_center");
-        rooms.get("viridian_city").addExit("west", "pokemart");
-        rooms.get("viridian_city").addExit("north", "work_place");
-        // 宝可梦中心
         rooms.get("pokemon_center").addExit("west", "viridian_city");
-        // 友好商店
+
+        rooms.get("viridian_city").addExit("west", "pokemart");
         rooms.get("pokemart").addExit("east", "viridian_city");
-        // 打工场所
+
+        rooms.get("viridian_city").addExit("north", "work_place");
         rooms.get("work_place").addExit("south", "viridian_city");
     }
 
-    // 5. 获取初始房间
     public static Room getStartRoom() {
         return rooms.get("home");
     }
 
-    // 6. 根据ID获取房间
     public static Room getRoom(String id) {
         return rooms.get(id);
+    }
+
+
+    private static final int CELL_W = 28;
+    private static final int GAP = 3;
+
+    private static int displayWidth(String s) {
+        int w = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            w += (c <= 0x7F) ? 1 : 2;
+        }
+        return w;
+    }
+
+    private static String repeat(char ch, int n) {
+        if (n <= 0) return "";
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) sb.append(ch);
+        return sb.toString();
+    }
+
+    private static String padRightByDisplayWidth(String s, int targetWidth) {
+        int w = displayWidth(s);
+        if (w >= targetWidth) return s;
+        return s + repeat(' ', targetWidth - w);
+    }
+
+    private static String cell(String currentRoomId, String roomId, String roomName) {
+        String mark = roomId.equals(currentRoomId) ? ">>" : "  ";
+        String text = mark + roomName + "(" + roomId + ")";
+        return padRightByDisplayWidth(text, CELL_W);
+    }
+
+    private static String row3(String c0, String c1, String c2) {
+        return c0 + repeat(' ', GAP) + c1 + repeat(' ', GAP) + c2;
+    }
+
+    private static String vLineAtCol1() {
+        int col1Start = CELL_W + GAP;
+        int x = col1Start + CELL_W / 2;
+        return repeat(' ', x) + "|";
+    }
+
+    public static String getAsciiMap(String currentRoomId) {
+
+        String cHome   = cell(currentRoomId, "home", "家");
+        String cTrain  = cell(currentRoomId, "training_town", "训练镇");
+        String cRoute1 = cell(currentRoomId, "route_1", "1号道路");
+        String cForest = cell(currentRoomId, "viridian_forest", "常青森林");
+        String cCity   = cell(currentRoomId, "viridian_city", "常青市");
+        String cCenter = cell(currentRoomId, "pokemon_center", "宝可梦中心");
+        String cMart   = cell(currentRoomId, "pokemart", "友好商店");
+        String cWork   = cell(currentRoomId, "work_place", "打工场所");
+        String blank   = padRightByDisplayWidth("", CELL_W);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=========== 世界地图 ===========\n");
+
+        // 顶部：work_place 在中间列
+        sb.append(row3(blank, cWork, blank)).append("\n");
+        sb.append(vLineAtCol1()).append("\n");
+
+        sb.append(row3(cMart, cCity, cCenter)).append("\n");
+        sb.append(vLineAtCol1()).append("\n");
+
+        sb.append(row3(blank, cRoute1, cForest)).append("\n");
+
+        int col0Center = CELL_W / 2;
+        int col1Start = CELL_W + GAP;
+        int col1Center = col1Start + CELL_W / 2;
+        sb.append(repeat(' ', col0Center)).append("|")
+                .append(repeat(' ', col1Center - col0Center - 1)).append("|")
+                .append("\n");
+
+        sb.append(row3(cHome, cTrain, blank)).append("\n");
+
+        sb.append("================================\n");
+        return sb.toString();
     }
 }

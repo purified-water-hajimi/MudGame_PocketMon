@@ -33,11 +33,45 @@ public class Room {
     }
 
     public void addExit(String direction, String neighborId) {
-        exits.put(direction, neighborId);
+        if (direction == null || neighborId == null) return;
+
+        String d = direction.trim().toLowerCase(Locale.ROOT);
+        exits.put(d, neighborId);
+
+        switch (d) {
+            case "n":
+                exits.put("north", neighborId);
+                break;
+            case "s":
+                exits.put("south", neighborId);
+                break;
+            case "e":
+                exits.put("east", neighborId);
+                break;
+            case "w":
+                exits.put("west", neighborId);
+                break;
+            case "north":
+                exits.put("n", neighborId);
+                break;
+            case "south":
+                exits.put("s", neighborId);
+                break;
+            case "east":
+                exits.put("e", neighborId);
+                break;
+            case "west":
+                exits.put("w", neighborId);
+                break;
+            default:
+                // 其它自定义方向不做映射
+                break;
+        }
     }
 
     public String getExit(String direction) {
-        return exits.get(direction);
+        if (direction == null) return null;
+        return exits.get(direction.trim().toLowerCase(Locale.ROOT));
     }
 
     public String getDescription() {

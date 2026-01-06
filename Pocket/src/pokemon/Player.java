@@ -1,16 +1,20 @@
 package pokemon;
 
 import java.util.*;
+import java.io.*;
 
-public class Player {
+public class Player implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String name;
     private List<PocketMon> team;
     private Map<String, Integer> bag;
     private int money;
+    private int hp;
 
     public Player(String name) {
         this.name = name;
-        this.team = new Vector<>();
+        this.team = new ArrayList<>();
         this.bag = new HashMap<>();
         this.money = 1000;
         initializePlayer();
@@ -148,6 +152,35 @@ public class Player {
         this.money -= amount;
         if (this.money < 0) {
             this.money = 0;
+        }
+    }
+    // 存档 / 读档（自动创建 saves/ 目录）
+    public static void savePlayer(Player player) {
+        try {
+            File dir = new File("saves");
+            if (!dir.exists()) dir.mkdirs();
+
+            FileOutputStream fileOut = new FileOutputStream("saves/" + player.getName() + ".ser");
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(player);
+            out.close();
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static Player loadPlayer(String name) {
+        try {
+            FileInputStream fileIn = new FileInputStream("saves/" + name + ".ser");
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            Player p = (Player) in.readObject();
+            in.close();
+            fileIn.close();
+            return p;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Player(name);
         }
     }
 }

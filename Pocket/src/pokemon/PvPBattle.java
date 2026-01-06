@@ -14,7 +14,7 @@ public class PvPBattle {
     }
 
     public void start() {
-        broadcast("\n⚔️ === PK 开始！=== ⚔️");
+        broadcast("\n === PK 开始！=== ");
         broadcast(p1.getPlayer().getName() + " VS " + p2.getPlayer().getName());
 
         showStatus(p1);
@@ -25,12 +25,12 @@ public class PvPBattle {
 
     public void handleInput(ClientHandler sender, String input) {
         if (sender != currentTurn) {
-            sender.sendMessage("🚫 还没轮到你！请等待对手行动...");
+            sender.sendMessage("还没轮到你！请等待对手行动...");
             return;
         }
 
         if (input.equalsIgnoreCase("run") || input.equals("逃跑")) {
-            broadcast("🏳️ " + sender.getPlayer().getName() + " 认输逃跑了！");
+            broadcast( sender.getPlayer().getName() + " 认输逃跑了！");
             endBattle(sender == p1 ? p2 : p1);
             return;
         }
@@ -79,10 +79,10 @@ public class PvPBattle {
 
         if (!effectMsg.isEmpty()) broadcast(effectMsg);
 
-        broadcast("💥 对 " + enemyPoke.getName() + " 造成了 " + finalDamage + " 点伤害！");
+        broadcast("对 " + enemyPoke.getName() + " 造成了 " + finalDamage + " 点伤害！");
 
         if (enemyPoke.isFainted()) {
-            broadcast("\n🏆 " + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
+            broadcast("\n " + defender.getPlayer().getName() + " 的 " + enemyPoke.getName() + " 倒下了！");
             endBattle(attacker);
         } else {
             currentTurn = defender;
@@ -99,29 +99,24 @@ public class PvPBattle {
     private double getTypeMultiplier(PocketMon.Type skillType, PocketMon.Type defType) {
         switch (skillType) {
             case FIRE:
-                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.BUG) return 2.0;
-                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.FIRE) return 0.5;
+                if (defType == PocketMon.Type.GRASS) return 1.5;
+                if (defType == PocketMon.Type.WATER) return 0.75;
                 break;
             case WATER:
-                if (defType == PocketMon.Type.FIRE) return 2.0;
-                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.GRASS) return 0.5;
-                break;
-            case GRASS:
-                if (defType == PocketMon.Type.WATER) return 2.0;
-                if (defType == PocketMon.Type.FIRE || defType == PocketMon.Type.GRASS ||
-                        defType == PocketMon.Type.FLYING || defType == PocketMon.Type.BUG) return 0.5;
+                if (defType == PocketMon.Type.FIRE) return 1.5;
+                if (defType == PocketMon.Type.GRASS) return 0.75;
                 break;
             case ELECTRIC:
-                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.FLYING) return 2.0;
-                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.ELECTRIC) return 0.5;
+                if (defType == PocketMon.Type.WATER || defType == PocketMon.Type.FLYING) return 1.5;
+                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.ELECTRIC) return 0.75;
                 break;
             case FLYING:
-                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.BUG) return 2.0;
-                if (defType == PocketMon.Type.ELECTRIC) return 0.5;
+                if (defType == PocketMon.Type.GRASS || defType == PocketMon.Type.BUG) return 1.5;
+                if (defType == PocketMon.Type.ELECTRIC) return 0.75;
                 break;
             case BUG:
-                if (defType == PocketMon.Type.GRASS) return 2.0;
-                if (defType == PocketMon.Type.FIRE || defType == PocketMon.Type.FLYING) return 0.5;
+                if (defType == PocketMon.Type.GRASS) return 1.5;
+                if (defType == PocketMon.Type.FIRE || defType == PocketMon.Type.FLYING) return 0.75;
                 break;
             default:
                 break;

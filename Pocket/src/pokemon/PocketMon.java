@@ -1,8 +1,9 @@
 package pokemon;
 
 import java.util.*;
+import java.io.Serializable;
 
-public class PocketMon {
+public class PocketMon implements Serializable {
     // 经验值升级表
     private static final int[] EXP_REQUIREMENTS = {
             0, 50, 100, 200, 350, 500, 700, 900, 1150, 1400,
@@ -45,8 +46,11 @@ public class PocketMon {
     }
 
     private void initializeSkills() {
-        skills.add(new Skill("撞击", Type.NORMAL, 35, 100, 35, Skill.SkillCategory.PHYSICAL, 1));
+        skills.clear();
 
+        skills.add(new Skill("撞击", Type.NORMAL, 35, 100, 35,Skill.SkillCategory.PHYSICAL, 3));
+
+        // 属性技能
         switch (this.type) {
             case GRASS:
                 skills.add(new Skill("藤鞭", Type.GRASS, 45, 100, 25, Skill.SkillCategory.PHYSICAL, 3));
@@ -90,7 +94,14 @@ public class PocketMon {
         return this.currentHp <= 0;
     }
 
-    // === 经验与升级 ===
+    public void boostAttack(int delta) {
+        attack = Math.max(1, attack + delta);
+    }
+
+    public void boostDefense(int delta) {
+        defense = Math.max(1, defense + delta);
+    }
+
     public void gainExp(int gainedExp) {
         if (level >= EXP_REQUIREMENTS.length) return;
         this.exp += gainedExp;

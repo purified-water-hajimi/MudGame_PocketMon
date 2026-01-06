@@ -13,7 +13,9 @@ public class BattleSystem {
 
     private static final double BASE_DODGE_CHANCE = 0.15;
     private static final double BASE_CRITICAL_CHANCE = 0.10;
-    private static final double CRITICAL_MULTIPLIER = 1.5;
+
+    private static final double CRITICAL_MULTIPLIER = 1.25;
+
     private static final double ENEMY_HEAL_CHANCE = 0.20;
 
     public BattleSystem(Player player, PocketMon wildPokemon, PrintWriter out, BufferedReader in) {
@@ -38,9 +40,9 @@ public class BattleSystem {
 
     public void startBattle() {
         send("\n=== 野生宝可梦出现了！ ===");
-        sleep(1500);
+        sleep(800);
         send("野生的 " + wildPokemon.getBattleStatus() + " 出现了！");
-        sleep(1500);
+        sleep(800);
 
         PocketMon playerPokemon = player.getFirstPokemon();
         if (playerPokemon == null) {
@@ -49,8 +51,7 @@ public class BattleSystem {
         }
 
         send("去吧！ " + playerPokemon.getBattleStatus());
-        sleep(1500);
-
+        sleep(800);
 
         while (battleActive && !playerPokemon.isFainted() && !wildPokemon.isFainted()) {
             showBattleStatus(playerPokemon);
@@ -59,7 +60,7 @@ public class BattleSystem {
                 playerTurn(playerPokemon);
             } catch (IOException e) {
                 e.printStackTrace();
-                break; // 网络断开，结束战斗
+                break;
             }
 
             if (!battleActive || playerPokemon.isFainted() || wildPokemon.isFainted()) break;
@@ -69,11 +70,10 @@ public class BattleSystem {
             if (playerPokemon.isFainted() || wildPokemon.isFainted()) break;
         }
 
-        // 战斗结束处理
         if (wildPokemon.isFainted()) {
             battleWin(playerPokemon);
         } else if (playerPokemon.isFainted()) {
-            battleLose();
+            battleLose(playerPokemon);
         }
     }
 
@@ -84,7 +84,6 @@ public class BattleSystem {
         send("2. 使用道具");
         send("3. 逃跑");
 
-        // 替换 Scanner 读取
         String choice = in.readLine();
         if (choice == null) return;
         choice = choice.trim();
@@ -156,7 +155,7 @@ public class BattleSystem {
 
         if (!hasBattleItems) {
             send("没有可用的战斗道具！");
-            sleep(1000);
+            sleep(600);
             playerTurn(playerPokemon);
             return;
         }
@@ -172,10 +171,14 @@ public class BattleSystem {
         }
 
         if (player.getBag().containsKey(itemName) && player.getBag().get(itemName) > 0) {
-            useBattleItem(itemName, playerPokemon);
+            boolean used = useBattleItem(itemName, playerPokemon);
+            if (!used) {
+                sleep(600);
+                useItemMenu(playerPokemon);
+            }
         } else {
             send("你没有这个道具或道具已用完！");
-            sleep(1000);
+            sleep(600);
             useItemMenu(playerPokemon);
         }
     }
@@ -185,59 +188,66 @@ public class BattleSystem {
                 itemName.equals("攻击强化剂") || itemName.equals("防御强化剂");
     }
 
-    private void useBattleItem(String itemName, PocketMon targetPokemon) {
+    private boolean useBattleItem(String itemName, PocketMon targetPokemon) {
         switch (itemName) {
             case "伤药":
                 targetPokemon.heal(20);
-                player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                send("使用了伤药！恢复了20HP");
-                break;
+                consumeFromBag(itemName);
+                send("你使用了【伤药】，恢复 20 HP。");
+                send(targetPokemon.getBattleStatus());
+                return true;
             case "好伤药":
                 targetPokemon.heal(50);
-                player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                send("使用了好伤药！恢复了50HP");
-                break;
+                consumeFromBag(itemName);
+                send("你使用了【好伤药】，恢复 50 HP。");
+                send(targetPokemon.getBattleStatus());
+                return true;
             case "攻击强化剂":
-                send("使用了攻击强化剂！攻击力暂时提升了！(未开发)");
-                player.getBag().put(itemName, player.getBag().get(itemName) - 1);
-                break;
+                targetPokemon.boostAttack(5);
+                consumeFromBag(itemName);
+                send("你使用了【攻击强化剂】，攻击 +5。");
+                return true;
+            case "防御强化剂":
+                targetPokemon.boostDefense(5);
+                consumeFromBag(itemName);
+                send("你使用了【防御强化剂】，防御 +5。");
+                return true;
             default:
                 send("这个道具不能在战斗中使用！");
-                return;
+                return false;
         }
+    }
 
-        if (player.getBag().get(itemName) <= 0) {
-            player.getBag().remove(itemName);
-        }
-
-        sleep(1500);
+    private void consumeFromBag(String itemName) {
+        int left = player.getBag().getOrDefault(itemName, 0) - 1;
+        if (left <= 0) player.getBag().remove(itemName);
+        else player.getBag().put(itemName, left);
     }
 
     private void enemyTurn(PocketMon playerPokemon) {
         send("\n--- 对手的回合 ---");
-        sleep(1000);
+        sleep(600);
 
-        // 野生宝可梦有几率使用治疗
         if (Math.random() < ENEMY_HEAL_CHANCE && wildPokemon.getCurrentHp() < wildPokemon.getMaxHp() / 2) {
-            send("野生" + wildPokemon.getName() + "使用了自我再生！");
-            sleep(1000);
+            send("野生 " + wildPokemon.getName() + " 使用了自我再生！");
+            sleep(600);
             int healAmount = wildPokemon.getMaxHp() / 3;
             wildPokemon.heal(healAmount);
-            send("野生" + wildPokemon.getName() + "恢复了" + healAmount + "HP！");
-            sleep(1500);
+            send("野生 " + wildPokemon.getName() + " 恢复了 " + healAmount + " HP！");
+            sleep(600);
             return;
         }
 
         Skill enemySkill = selectEnemySkill();
-        if (enemySkill != null && enemySkill.use()) {
-            send("野生" + wildPokemon.getName() + "使用了 " + enemySkill.getName() + "！");
-            sleep(1000);
-            executeAttack(wildPokemon, enemySkill, playerPokemon, "野生" + wildPokemon.getName());
+        if (enemySkill != null) {
+            enemySkill.use();
+            send("野生 " + wildPokemon.getName() + " 使用了 " + enemySkill.getName() + "！");
+            sleep(600);
+            executeAttack(wildPokemon, enemySkill, playerPokemon, "野生 " + wildPokemon.getName());
         } else {
-            // 使用基础攻击
-            send("野生" + wildPokemon.getName() + "使用了 撞击！");
-            sleep(1000);
-            executeBasicAttack(wildPokemon, playerPokemon, "野生" + wildPokemon.getName());
+            send("野生 " + wildPokemon.getName() + " 使用了 撞击！");
+            sleep(600);
+            executeBasicAttack(wildPokemon, playerPokemon, "野生 " + wildPokemon.getName());
         }
     }
 
@@ -255,8 +265,8 @@ public class BattleSystem {
         }
 
         if (!skill.checkHit()) {
-            send(attackerName + "的技能没有命中！");
-            sleep(1200);
+            send(attackerName + " 的技能没有命中！");
+            sleep(600);
             return;
         }
 
@@ -264,7 +274,7 @@ public class BattleSystem {
         if (damage > 0) {
             defender.takeDamage(damage);
             send(attackerName + " 对 " + defender.getName() + " 造成了 " + damage + " 点伤害！");
-            sleep(1500);
+            sleep(700);
         }
     }
 
@@ -278,13 +288,13 @@ public class BattleSystem {
 
         defender.takeDamage(damage);
         send(attackerName + " 对 " + defender.getName() + " 造成了 " + damage + " 点伤害！");
-        sleep(1500);
+        sleep(700);
     }
 
     private boolean checkDodge(String defenderName) {
         if (Math.random() < BASE_DODGE_CHANCE) {
             send(defenderName + " 成功闪避了攻击！");
-            sleep(1200);
+            sleep(600);
             return true;
         }
         return false;
@@ -301,9 +311,9 @@ public class BattleSystem {
 
     private int applyCriticalHit(int baseDamage) {
         if (Math.random() < BASE_CRITICAL_CHANCE) {
-            send("💥 会心一击！");
-            sleep(800);
-            return (int)(baseDamage * CRITICAL_MULTIPLIER);
+            send("会心一击！");
+            sleep(400);
+            return (int) Math.max(1, Math.round(baseDamage * CRITICAL_MULTIPLIER));
         }
         return baseDamage;
     }
@@ -313,33 +323,35 @@ public class BattleSystem {
     }
 
     private void battleWin(PocketMon playerPokemon) {
-        send("\n🎉 胜利！野生" + wildPokemon.getName() + "倒下了！");
-        sleep(1500);
+        send("\n胜利！野生 " + wildPokemon.getName() + " 倒下了！");
+        sleep(700);
 
         int expGain = wildPokemon.getLevel() * 10;
         playerPokemon.gainExp(expGain);
-        sleep(1000);
+        send(playerPokemon.getName() + " 获得了 " + expGain + " 经验。");
+        sleep(600);
 
-        player.gainMoney(wildPokemon.getLevel() * 5);
-        sleep(1000);
+        int moneyGain = wildPokemon.getLevel() * 5;
+        player.gainMoney(moneyGain);
+        send("你获得了 " + moneyGain + " 金币。");
+        sleep(600);
 
-        // 显示经验信息
         int expToNext = playerPokemon.getExpToNextLevel();
         if (expToNext > 0) {
-            send("📊 " + playerPokemon.getName() + " 距离下一级还需: " + expToNext + "经验");
-        } else if (expToNext == 0) {
-            send("✨ " + playerPokemon.getName() + " 可以升级了！");
+            send(playerPokemon.getName() + " 距离下一级还需: " + expToNext + " 经验");
+        } else {
+            send(playerPokemon.getName() + " 可以升级了！");
         }
         sleep(1000);
 
         battleActive = false;
     }
 
-    private void battleLose() {
-        send("\n💔 " + player.getFirstPokemon().getName() + "倒下了！");
-        sleep(1500);
+    private void battleLose(PocketMon playerPokemon) {
+        send("\n" + playerPokemon.getName() + " 倒下了！");
+        sleep(700);
         send("你被打败了...");
-        sleep(1500);
+        sleep(700);
         battleActive = false;
     }
 

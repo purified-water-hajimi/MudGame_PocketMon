@@ -15,7 +15,7 @@ public class GameServer {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("服务器已启动！监听端口: " + PORT);
 
-            MarketManager.loadMarket();
+            ClientHandler.loadMarket();
             System.out.println("市场数据加载完成！");
 
             System.out.println("等待玩家连接...");

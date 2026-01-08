@@ -73,19 +73,16 @@ public class PvPBattle {
 
         double multiplier = getTypeMultiplier(skill.getType(), enemyPoke.getType());
         int level = myPoke.getLevel();
-
-        double powerMultiplier = 1.0 + (level - 1) * 0.05;
-        int effectivePower = (int) (skill.getPower() * powerMultiplier);
         int attack = myPoke.getAttack();
         int defense = Math.max(1, enemyPoke.getDefense());
+        int power = skill.getPower();
 
-        double rawDamage =
-                (((4.0 * level / 5 + 2)
-                        * effectivePower
-                        * attack / defense) / 15)
-                        + 20;
+        // 3倍伤害计算
+        double damage = ((((2.0 * level / 5 + 2)
+                * power
+                * attack / defense) / 50) + 2) * 3.0;
 
-        int finalDamage = (int) Math.max(1, rawDamage * multiplier);
+        int finalDamage = (int) Math.max(1, damage * multiplier);
 
         enemyPoke.takeDamage(finalDamage);
 
@@ -335,8 +332,6 @@ public class PvPBattle {
                 + " " + pm2.getHp() + "/" + pm2.getMaxHp() + " HP");
         broadcast("----------------------------");
     }
-
-
 
     private void broadcast(String msg) {
         p1.sendMessage(msg);

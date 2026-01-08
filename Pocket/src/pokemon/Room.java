@@ -3,14 +3,12 @@ package pokemon;
 import java.util.*;
 
 public class Room {
-    private String id;           // 房间唯一ID (如 "home")
-    private String name;         // 房间显示名 (如 "真新镇")
-    private String description;  // 描述
-    private Map<String, String> exits; // 出口方向 -> 房间ID
+    private String id;
+    private String name;
+    private String description;
+    private Map<String, String> exits;
 
-    // 玩家列表 (联机用)
     private Vector<Player> playersInRoom = new Vector<>();
-    // 野生宝可梦列表 (战斗用)
     private List<PocketMon> wildPokemons = new ArrayList<>();
 
     public Room(String id, String name, String description) {
@@ -64,7 +62,6 @@ public class Room {
                 exits.put("w", neighborId);
                 break;
             default:
-                // 其它自定义方向不做映射
                 break;
         }
     }
@@ -86,7 +83,6 @@ public class Room {
         return exits.keySet().toString();
     }
 
-    // === 联机功能: 玩家进出 ===
     public void addPlayer(Player p) {
         playersInRoom.add(p);
     }
@@ -97,7 +93,7 @@ public class Room {
 
     public String getPlayerNames(Player observer) {
         StringBuilder sb = new StringBuilder();
-        for (Player p : playersInRoom) {
+        for (Player p : getPlayersSnapshot()) {
             if (p != observer) {
                 sb.append(p.getName()).append(" ");
             }
@@ -105,14 +101,44 @@ public class Room {
         return sb.length() == 0 ? "身边没有人。" : "身边的玩家: " + sb.toString();
     }
 
-    // === 战斗功能: 野生宝可梦 ===
+    public List<Player> getPlayersSnapshot() {
+        return new ArrayList<>(playersInRoom);
+    }
+
+
+    public void broadcastToRoom(String msg, Player exclude) {
+        for (Player p : getPlayersSnapshot()) {
+            if (exclude != null && p == exclude) continue;
+            p.sendMessage(msg);
+        }
+    }
+
+
     public void addWildPokemon(PocketMon pm, double chance) {
         wildPokemons.add(pm);
     }
 
-    public PocketMon getRandomWildPokemon() {
+    public PocketMon getRandomWildPokemon(int playerLevel) {
         if (wildPokemons.isEmpty()) return null;
-        // 随机返回一只
-        return wildPokemons.get(new Random().nextInt(wildPokemons.size()));
+
+        PocketMon template =
+                wildPokemons.get(new Random().nextInt(wildPokemons.size()));
+
+        int delta = new Random().nextInt(3) - 1;
+        int wildLevel = Math.max(1, playerLevel + delta);
+
+        return new PocketMon(
+                template.getName(),
+                template.getType(),
+                wildLevel
+        );
+    }
+
+
+
+    public List<Player> getPlayersInRoom()
+    {
+        return new ArrayList
+                <>(playersInRoom);
     }
 }

@@ -1,0 +1,11 @@
+./pokemon/BattleSystem.java
+./pokemon/ClientHandler.java
+./pokemon/GameClient.java
+./pokemon/GameServer.java
+./pokemon/Item.java
+./pokemon/Player.java
+./pokemon/PocketMon.java
+./pokemon/PvPBattle.java
+./pokemon/Room.java
+./pokemon/Skill.java
+./pokemon/WorldManager.java

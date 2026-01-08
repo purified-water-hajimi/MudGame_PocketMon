@@ -4,7 +4,6 @@ import java.util.*;
 import java.io.Serializable;
 
 public class PocketMon implements Serializable {
-    // 经验值升级表
     private static final int[] EXP_REQUIREMENTS = {
             0, 50, 100, 200, 350, 500, 700, 900, 1150, 1400,
             1700, 2000, 2350, 2700, 3100, 3500, 4000, 4500, 5000, 5500, 6000
@@ -33,7 +32,6 @@ public class PocketMon implements Serializable {
         calculateStats();
         this.currentHp = this.maxHp;
 
-        // 初始经验
         this.exp = level > 1 && level <= EXP_REQUIREMENTS.length ? EXP_REQUIREMENTS[level - 1] : 0;
 
         initializeSkills();
@@ -50,7 +48,6 @@ public class PocketMon implements Serializable {
 
         skills.add(new Skill("撞击", Type.NORMAL, 35, 100, 35,Skill.SkillCategory.PHYSICAL, 3));
 
-        // 属性技能
         switch (this.type) {
             case GRASS:
                 skills.add(new Skill("藤鞭", Type.GRASS, 45, 100, 25, Skill.SkillCategory.PHYSICAL, 3));
@@ -75,7 +72,6 @@ public class PocketMon implements Serializable {
         }
     }
 
-    // 战斗相关
     public void takeDamage(int damage) {
         this.currentHp -= damage;
         if (this.currentHp < 0) this.currentHp = 0;
@@ -138,7 +134,6 @@ public class PocketMon implements Serializable {
         return null;
     }
 
-    // Getters
     public int getHp() { return currentHp; }
     public int getCurrentHp() { return currentHp; }
     public int getMaxHp() { return maxHp; }

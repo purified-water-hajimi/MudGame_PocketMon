@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class GameClient {
-    private static final String SERVER_IP = "192.168.10.157";
+    private static final String SERVER_IP ="192.168.10.157";
     private static final int SERVER_PORT = 6666;
 
     public static void main(String[] args) {

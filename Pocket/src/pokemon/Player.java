@@ -43,6 +43,11 @@ public class Player implements Serializable {
         }
     }
 
+    public PocketMon getActivePokemon() {
+        if (team == null || team.isEmpty()) return null;
+        return team.get(0);
+    }
+
     public String getStatus() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== 训练家 " + name + " ===\n");
@@ -76,6 +81,21 @@ public class Player implements Serializable {
         }
         sb.append("金钱: " + money + "元");
         return sb.toString();
+    }
+
+    public void addItem(String itemName, int count) {
+        if (count <= 0) return;
+        bag.put(itemName, bag.getOrDefault(itemName, 0) + count);
+        sendMessage("[获得道具] " + itemName + " x" + count);
+    }
+
+    public boolean removeItem(String itemName, int count) {
+        Integer cur = bag.get(itemName);
+        if (cur == null || cur < count) return false;
+        int left = cur - count;
+        if (left <= 0) bag.remove(itemName);
+        else bag.put(itemName, left);
+        return true;
     }
 
     public void useItem(String itemName) {
@@ -141,24 +161,15 @@ public class Player implements Serializable {
         sendMessage("所有宝可梦已完全恢复！");
     }
 
-    public void buyItem(String itemName, int price, int count) {
-        if (count <= 0) {
-            sendMessage("购买数量必须大于 0！");
+    public void buyItem(String itemName, int price) {
+        if (money < price) {
+            sendMessage("金钱不足！需要" + price + "元，但你只有" + money + "元。");
             return;
         }
-
-        int totalCost = price * count;
-
-        if (money < totalCost) {
-            sendMessage("金钱不足！购买 " + count + " 个 " + itemName + " 需要 " + totalCost + "元，但你只有 " + money + "元。");
-            return;
-        }
-
-        money -= totalCost;
-        bag.put(itemName, bag.getOrDefault(itemName, 0) + count);
-
-        sendMessage("购买成功！获得了 " + itemName + " x" + count);
-        sendMessage("花费: " + totalCost + "元 | 剩余金钱: " + money + "元");
+        money -= price;
+        bag.put(itemName, bag.getOrDefault(itemName, 0) + 1);
+        sendMessage("购买了 " + itemName + "！花费" + price + "元");
+        sendMessage("剩余金钱: " + money + "元");
     }
 
     public void work() {
@@ -208,10 +219,10 @@ public class Player implements Serializable {
 
             out.close();
             fileOut.close();
-            return true; // 返回成功
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false; // 返回失败
+            return false;
         }
     }
 
